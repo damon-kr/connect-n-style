@@ -1,13 +1,15 @@
 import { QRTemplate } from '@/types/wifi';
+import { PrintSize } from '@/types/size';
 import { qrTemplates } from '@/data/templates';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Check, Wifi, Coffee, Building, Palette, Leaf, Monitor, Crown, Radio } from 'lucide-react';
+import { Check, Wifi, Coffee, Building, Palette, Leaf, Monitor, Crown, Radio, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TemplateSelectorProps {
   selectedTemplate: QRTemplate | null;
   onTemplateSelect: (template: QRTemplate) => void;
+  printSize?: PrintSize;
 }
 
 const iconMap = {
@@ -21,12 +23,29 @@ const iconMap = {
   radio: Radio,
 };
 
-export const TemplateSelector = ({ selectedTemplate, onTemplateSelect }: TemplateSelectorProps) => {
+export const TemplateSelector = ({ selectedTemplate, onTemplateSelect, printSize }: TemplateSelectorProps) => {
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lg font-semibold text-foreground mb-2">Choose Design Template</h3>
-        <p className="text-sm text-muted-foreground">Select a template that matches your business style</p>
+        <h3 className="text-lg font-semibold text-foreground mb-2">디자인 템플릿 선택</h3>
+        <p className="text-sm text-muted-foreground">
+          {printSize ? `${printSize.name} 크기에 최적화된 템플릿을 선택하세요` : '비즈니스 스타일에 맞는 템플릿을 선택하세요'}
+        </p>
+      </div>
+      
+      {/* AI 생성 버튼 */}
+      <div className="bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 rounded-lg p-4">
+        <div className="flex items-center gap-3 mb-2">
+          <Sparkles size={20} className="text-primary" />
+          <h4 className="font-medium">AI로 맞춤 템플릿 생성</h4>
+        </div>
+        <p className="text-sm text-muted-foreground mb-3">
+          비즈니스 유형과 스타일을 설명하면 AI가 맞춤 템플릿을 생성해드립니다.
+        </p>
+        <Button variant="outline" size="sm" className="w-full" disabled>
+          <Sparkles size={16} className="mr-2" />
+          곧 출시 예정
+        </Button>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

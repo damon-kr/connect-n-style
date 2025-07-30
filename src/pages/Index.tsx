@@ -1,8 +1,12 @@
 import { useState } from 'react';
 import { WiFiConfig, QRTemplate } from '@/types/wifi';
+import { PrintSize } from '@/types/size';
 import { WiFiForm } from '@/components/WiFiForm';
+import { PrintSizeSelector } from '@/components/PrintSizeSelector';
 import { TemplateSelector } from '@/components/TemplateSelector';
 import { QRPreview } from '@/components/QRPreview';
+import { ShareModal } from '@/components/ShareModal';
+import { AdBanner } from '@/components/AdBanner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Wifi, QrCode, Download, Sparkles, Heart, Github } from 'lucide-react';
@@ -17,18 +21,23 @@ const Index = () => {
     hidden: false,
   });
   
-  const [selectedTemplate, setSelectedTemplate] = useState<QRTemplate | null>(qrTemplates[0]);
+  const [selectedSize, setSelectedSize] = useState<PrintSize | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<QRTemplate | null>(null);
   const [generatedCount, setGeneratedCount] = useState(0);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [generatedImageUrl, setGeneratedImageUrl] = useState<string>();
 
-  const handleDownload = () => {
+  const handleDownload = (imageUrl: string) => {
     setGeneratedCount(prev => prev + 1);
+    setGeneratedImageUrl(imageUrl);
     if (generatedCount === 0) {
-      toast.success('First QR code generated! 🎉');
+      toast.success('첫 번째 QR 코드가 생성되었습니다! 🎉');
     }
   };
 
-  const handleShare = () => {
-    toast.success('Thanks for sharing! 💜');
+  const handleShare = (imageUrl?: string) => {
+    setGeneratedImageUrl(imageUrl);
+    setShareModalOpen(true);
   };
 
   return (
@@ -52,7 +61,7 @@ const Index = () => {
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground">
                 <Sparkles size={16} className="text-primary" />
-                <span>{generatedCount} QR codes generated</span>
+                <span>{generatedCount}개 QR 코드 생성됨</span>
               </div>
               <Button variant="outline" size="sm" asChild>
                 <a href="https://github.com" target="_blank" rel="noopener noreferrer">
@@ -70,45 +79,67 @@ const Index = () => {
         <div className="container mx-auto text-center max-w-4xl">
           <div className="inline-flex items-center gap-2 bg-primary/10 text-primary px-4 py-2 rounded-full text-sm font-medium mb-6">
             <Wifi size={16} />
-            Free Tool for Business Owners
+            사업자를 위한 무료 도구
           </div>
           
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-hero bg-clip-text text-transparent">
-            Create Beautiful WiFi QR Codes
+            아름다운 WiFi QR 코드 생성기
           </h1>
           
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Stop writing WiFi passwords on paper! Generate professional QR codes that customers can scan to connect instantly. Perfect for cafes, restaurants, hotels, and any business.
+            더 이상 종이에 WiFi 비밀번호를 적지 마세요! 고객이 바로 스캔해서 연결할 수 있는 전문적인 QR 코드를 생성하세요. 카페, 레스토랑, 호텔 등 모든 사업장에 완벽합니다.
           </p>
           
           <div className="flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground mb-12">
             <div className="flex items-center gap-2">
               <Download size={16} className="text-primary" />
-              <span>High-resolution downloads</span>
+              <span>고해상도 다운로드</span>
             </div>
             <div className="flex items-center gap-2">
               <QrCode size={16} className="text-primary" />
-              <span>8 beautiful templates</span>
+              <span>다양한 템플릿</span>
             </div>
             <div className="flex items-center gap-2">
               <Heart size={16} className="text-primary" />
-              <span>100% free to use</span>
+              <span>100% 무료</span>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* 상단 광고 배너 */}
+      <section className="px-4">
+        <div className="container mx-auto max-w-4xl">
+          <AdBanner position="top" />
         </div>
       </section>
 
       {/* Main Content */}
       <section className="pb-12 px-4">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Step 1: WiFi Configuration */}
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            {/* Step 1: Print Size Selection */}
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
                   1
                 </div>
-                <h2 className="text-xl font-semibold">WiFi Details</h2>
+                <h2 className="text-xl font-semibold">인쇄 크기</h2>
+              </div>
+              
+              <PrintSizeSelector 
+                selectedSize={selectedSize}
+                onSizeSelect={setSelectedSize}
+              />
+            </div>
+
+            {/* Step 2: WiFi Configuration */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                  2
+                </div>
+                <h2 className="text-xl font-semibold">WiFi 정보</h2>
               </div>
               
               <WiFiForm 
@@ -117,33 +148,46 @@ const Index = () => {
               />
             </div>
 
-            {/* Step 2: Template Selection */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
-                  2
-                </div>
-                <h2 className="text-xl font-semibold">Choose Design</h2>
-              </div>
-              
-              <TemplateSelector 
-                selectedTemplate={selectedTemplate}
-                onTemplateSelect={setSelectedTemplate}
-              />
-            </div>
-
-            {/* Step 3: Preview & Download */}
+            {/* Step 3: Template Selection */}
             <div className="space-y-6">
               <div className="flex items-center gap-3 mb-4">
                 <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
                   3
                 </div>
-                <h2 className="text-xl font-semibold">Download</h2>
+                <h2 className="text-xl font-semibold">디자인 선택</h2>
               </div>
+              
+              {selectedSize && (
+                <TemplateSelector 
+                  selectedTemplate={selectedTemplate}
+                  onTemplateSelect={setSelectedTemplate}
+                  printSize={selectedSize}
+                />
+              )}
+              
+              {!selectedSize && (
+                <div className="text-center text-muted-foreground py-8">
+                  먼저 인쇄 크기를 선택해주세요
+                </div>
+              )}
+            </div>
+
+            {/* Step 4: Preview & Download */}
+            <div className="space-y-6">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                  4
+                </div>
+                <h2 className="text-xl font-semibold">다운로드</h2>
+              </div>
+              
+              {/* 사이드바 광고 */}
+              <AdBanner position="sidebar" className="mb-4" />
               
               <QRPreview 
                 config={wifiConfig}
                 template={selectedTemplate}
+                printSize={selectedSize}
                 onDownload={handleDownload}
                 onShare={handleShare}
               />
@@ -157,16 +201,16 @@ const Index = () => {
       {/* Features Section */}
       <section className="py-12 px-4">
         <div className="container mx-auto max-w-4xl text-center">
-          <h2 className="text-3xl font-bold mb-8">Why Business Owners Love This Tool</h2>
+          <h2 className="text-3xl font-bold mb-8">사업자들이 이 도구를 사랑하는 이유</h2>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="space-y-4">
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
                 <QrCode size={24} className="text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Professional Look</h3>
+              <h3 className="text-xl font-semibold">전문적인 외관</h3>
               <p className="text-muted-foreground">
-                Replace handwritten WiFi passwords with beautiful, branded QR codes that match your business style.
+                손으로 쓴 WiFi 비밀번호를 비즈니스 스타일에 맞는 아름답고 브랜드화된 QR 코드로 교체하세요.
               </p>
             </div>
             
@@ -174,9 +218,9 @@ const Index = () => {
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
                 <Wifi size={24} className="text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Instant Connection</h3>
+              <h3 className="text-xl font-semibold">즉시 연결</h3>
               <p className="text-muted-foreground">
-                Customers scan once and connect automatically. No more typing long passwords or asking staff.
+                고객이 한 번 스캔하면 자동으로 연결됩니다. 더 이상 긴 비밀번호를 입력하거나 직원에게 묻지 않아도 됩니다.
               </p>
             </div>
             
@@ -184,12 +228,19 @@ const Index = () => {
               <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mx-auto">
                 <Download size={24} className="text-primary" />
               </div>
-              <h3 className="text-xl font-semibold">Print Ready</h3>
+              <h3 className="text-xl font-semibold">인쇄 준비 완료</h3>
               <p className="text-muted-foreground">
-                Download high-resolution files perfect for printing, laminating, or displaying anywhere in your business.
+                인쇄, 코팅 또는 비즈니스 어디든 표시하기에 완벽한 고해상도 파일을 다운로드하세요.
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* 하단 광고 배너 */}
+      <section className="px-4 mt-12">
+        <div className="container mx-auto max-w-4xl">
+          <AdBanner position="bottom" />
         </div>
       </section>
 
@@ -198,22 +249,30 @@ const Index = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <QrCode size={20} className="text-primary" />
-            <span className="font-semibold">WiFi QR Generator</span>
+            <span className="font-semibold">WiFi QR 생성기</span>
           </div>
           
           <p className="text-sm text-muted-foreground mb-4">
-            Made with ❤️ for small business owners who want to provide better customer experience.
+            더 나은 고객 경험을 제공하고자 하는 소상공인을 위해 ❤️로 만들었습니다.
           </p>
           
           <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
-            <span>© 2024 WiFi QR Generator</span>
+            <span>© 2024 WiFi QR 생성기</span>
             <span>•</span>
-            <span>Free to use</span>
+            <span>무료 사용</span>
             <span>•</span>
-            <span>No registration required</span>
+            <span>회원가입 불필요</span>
           </div>
         </div>
       </footer>
+
+      {/* Share Modal */}
+      <ShareModal 
+        isOpen={shareModalOpen}
+        onClose={() => setShareModalOpen(false)}
+        imageUrl={generatedImageUrl}
+        businessName={wifiConfig.ssid}
+      />
     </div>
   );
 };
