@@ -8,25 +8,20 @@ export const generateWiFiQRString = (config: WiFiConfig): string => {
   return `WIFI:T:${security};S:${ssid};P:${password};H:${hidden};;`;
 };
 
-export const generateQRCode = async (
-  wifiString: string,
-  options: QRCode.QRCodeToDataURLOptions = {}
-): Promise<string> => {
-  const defaultOptions: QRCode.QRCodeToDataURLOptions = {
-    errorCorrectionLevel: 'M',
-    type: 'image/png',
-    quality: 0.92,
-    margin: 1,
-    color: {
-      dark: '#000000',
-      light: '#FFFFFF'
-    },
-    width: 512,
-    ...options
-  };
-
+export const generateQRCode = async (config: WiFiConfig, template: any): Promise<string> => {
   try {
-    return await QRCode.toDataURL(wifiString, defaultOptions);
+    const qrString = generateWiFiQRString(config);
+    
+    const canvas = await QRCode.toCanvas(qrString, {
+      width: 512,
+      margin: 2,
+      color: {
+        dark: template.textColor,
+        light: template.backgroundColor
+      }
+    });
+    
+    return canvas.toDataURL();
   } catch (error) {
     console.error('Error generating QR code:', error);
     throw new Error('Failed to generate QR code');
@@ -37,19 +32,19 @@ export const validateWiFiConfig = (config: WiFiConfig): string[] => {
   const errors: string[] = [];
   
   if (!config.ssid.trim()) {
-    errors.push('WiFi network name (SSID) is required');
+    errors.push('WiFi 네트워크 이름(SSID)을 입력해주세요');
   }
   
   if (config.security !== 'nopass' && !config.password.trim()) {
-    errors.push('Password is required for secured networks');
+    errors.push('보안이 설정된 네트워크는 비밀번호가 필요합니다');
   }
   
   if (config.ssid.length > 32) {
-    errors.push('WiFi network name cannot exceed 32 characters');
+    errors.push('WiFi 네트워크 이름은 32자를 초과할 수 없습니다');
   }
   
   if (config.password.length > 63) {
-    errors.push('Password cannot exceed 63 characters');
+    errors.push('비밀번호는 63자를 초과할 수 없습니다');
   }
   
   return errors;

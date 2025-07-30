@@ -1,303 +1,246 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { WiFiConfig, QRTemplate } from '@/types/wifi';
-import { generateWiFiQRString, generateQRCode, validateWiFiConfig } from '@/lib/qrGenerator';
+import { PrintSize } from '@/types/size';
+import { generateQRCode } from '@/lib/qrGenerator';
+import { QRCustomizer } from '@/components/QRCustomizer';
+import { AdInterstitial } from '@/components/AdInterstitial';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Download, Share2, QrCode, Building2 } from 'lucide-react';
+import { Download, Share2, Eye, FileImage, FileText } from 'lucide-react';
 import { toast } from 'sonner';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 interface QRPreviewProps {
   config: WiFiConfig;
   template: QRTemplate | null;
-  onDownload?: (dataUrl: string) => void;
-  onShare?: () => void;
+  printSize: PrintSize | null;
+  onDownload: (imageUrl: string) => void;
+  onShare: (imageUrl?: string) => void;
 }
 
-export const QRPreview = ({ config, template, onDownload, onShare }: QRPreviewProps) => {
-  const [qrDataUrl, setQrDataUrl] = useState<string>('');
-  const [businessName, setBusinessName] = useState('');
+export const QRPreview = ({ config, template, printSize, onDownload, onShare }: QRPreviewProps) => {
+  const [qrImage, setQrImage] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const previewRef = useRef<HTMLDivElement>(null);
+  const [businessName, setBusinessName] = useState('');
+  const [additionalText, setAdditionalText] = useState('');
+  const [selectedFont, setSelectedFont] = useState('inter');
+  const [showAdInterstitial, setShowAdInterstitial] = useState(false);
+  const [pendingAction, setPendingAction] = useState<'download' | 'export' | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateQR = async () => {
-    if (!template) return;
-
-    const errors = validateWiFiConfig(config);
-    if (errors.length > 0) {
-      toast.error('Please fix the form errors before generating QR code');
-      return;
-    }
-
+    if (!template || !config.ssid || !printSize) return;
+    
     setIsGenerating(true);
     try {
-      const wifiString = generateWiFiQRString(config);
-      const dataUrl = await generateQRCode(wifiString, {
-        color: {
-          dark: template.textColor,
-          light: 'transparent'
-        },
-        width: 400,
-        margin: 2,
-      });
-      setQrDataUrl(dataUrl);
+      const qrDataUrl = await generateQRCode(config, template);
+      setQrImage(qrDataUrl);
+      
+      // Draw on canvas for custom styling
+      const canvas = canvasRef.current;
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          // Set canvas size based on print size
+          canvas.width = printSize.width;
+          canvas.height = printSize.height;
+          
+          // Clear canvas
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          
+          // Set background
+          ctx.fillStyle = template.backgroundColor;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // Load and draw QR code
+          const img = new Image();
+          img.onload = () => {
+            const qrSize = Math.min(canvas.width, canvas.height) * 0.6;
+            const x = (canvas.width - qrSize) / 2;
+            const y = (canvas.height - qrSize) / 2;
+            
+            ctx.drawImage(img, x, y, qrSize, qrSize);
+            
+            // Add business name if provided
+            if (businessName) {
+              ctx.fillStyle = template.textColor;
+              ctx.font = `bold ${Math.max(16, canvas.width / 25)}px ${selectedFont}`;
+              ctx.textAlign = 'center';
+              ctx.fillText(businessName, canvas.width / 2, y - 20);
+            }
+            
+            // Add additional text if provided
+            if (additionalText) {
+              ctx.fillStyle = template.accentColor;
+              ctx.font = `${Math.max(14, canvas.width / 30)}px ${selectedFont}`;
+              ctx.fillText(additionalText, canvas.width / 2, y + qrSize + 30);
+            }
+          };
+          img.src = qrDataUrl;
+        }
+      }
     } catch (error) {
       console.error('Error generating QR code:', error);
-      toast.error('Failed to generate QR code');
+      toast.error('QR 코드 생성에 실패했습니다');
     } finally {
       setIsGenerating(false);
     }
   };
 
   useEffect(() => {
-    if (config.ssid && template) {
-      generateQR();
-    }
-  }, [config, template]);
+    generateQR();
+  }, [config, template, printSize, businessName, additionalText, selectedFont]);
 
-  const handleDownloadPNG = async () => {
-    if (!previewRef.current || !qrDataUrl) return;
+  const handleDownload = () => {
+    setPendingAction('download');
+    setShowAdInterstitial(true);
+  };
 
-    try {
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 3,
-        backgroundColor: template?.backgroundColor || '#ffffff',
-        width: 800,
-        height: 1000,
-      });
-      
+  const handlePDFExport = () => {
+    setPendingAction('export');
+    setShowAdInterstitial(true);
+  };
+
+  const handleAdComplete = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    if (pendingAction === 'download') {
       const link = document.createElement('a');
-      link.download = `wifi-qr-${config.ssid.replace(/\s+/g, '-').toLowerCase()}.png`;
+      link.download = `${businessName || config.ssid || 'WiFi'}-QR.png`;
       link.href = canvas.toDataURL();
       link.click();
-      
-      toast.success('QR code downloaded successfully!');
-      onDownload?.(canvas.toDataURL());
-    } catch (error) {
-      console.error('Error downloading PNG:', error);
-      toast.error('Failed to download QR code');
-    }
-  };
-
-  const handleDownloadPDF = async () => {
-    if (!previewRef.current || !qrDataUrl) return;
-
-    try {
-      const canvas = await html2canvas(previewRef.current, {
-        scale: 3,
-        backgroundColor: template?.backgroundColor || '#ffffff',
-      });
-      
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
+      onDownload(canvas.toDataURL());
+      toast.success('QR 코드가 다운로드되었습니다!');
+    } else if (pendingAction === 'export') {
       const imgData = canvas.toDataURL('image/png');
-      const imgWidth = 150;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      const x = (210 - imgWidth) / 2; // Center on A4 page
-      const y = 20;
-
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-      pdf.save(`wifi-qr-${config.ssid.replace(/\s+/g, '-').toLowerCase()}.pdf`);
+      const pdf = new jsPDF();
       
-      toast.success('PDF downloaded successfully!');
-    } catch (error) {
-      console.error('Error downloading PDF:', error);
-      toast.error('Failed to download PDF');
-    }
-  };
-
-  const handleShare = async () => {
-    if (!qrDataUrl) return;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `WiFi QR Code for ${config.ssid}`,
-          text: `Scan this QR code to connect to ${config.ssid} WiFi network`,
-          url: window.location.href,
-        });
-        onShare?.();
-      } catch (error) {
-        console.error('Error sharing:', error);
+      // Calculate dimensions to fit the page while maintaining aspect ratio
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const imgAspectRatio = canvas.width / canvas.height;
+      
+      let imgWidth = pageWidth - 40; // 20mm margin on each side
+      let imgHeight = imgWidth / imgAspectRatio;
+      
+      if (imgHeight > pageHeight - 40) {
+        imgHeight = pageHeight - 40;
+        imgWidth = imgHeight * imgAspectRatio;
       }
-    } else {
-      // Fallback: copy to clipboard
-      try {
-        await navigator.clipboard.writeText(window.location.href);
-        toast.success('Link copied to clipboard!');
-        onShare?.();
-      } catch (error) {
-        toast.error('Sharing not supported');
-      }
+      
+      const x = (pageWidth - imgWidth) / 2;
+      const y = (pageHeight - imgHeight) / 2;
+      
+      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
+      pdf.save(`${businessName || config.ssid || 'WiFi'}-QR.pdf`);
+      toast.success('PDF가 다운로드되었습니다!');
     }
-  };
 
-  if (!template) {
-    return (
-      <Card className="w-full">
-        <CardContent className="flex items-center justify-center h-64">
-          <div className="text-center text-muted-foreground">
-            <QrCode size={48} className="mx-auto mb-2 opacity-50" />
-            <p>Select a template to see preview</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+    setPendingAction(null);
+  };
 
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <QrCode size={20} className="text-primary" />
-          Preview & Download
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-2">
-          <Label htmlFor="businessName" className="text-sm font-medium">
-            Business Name (Optional)
-          </Label>
-          <Input
-            id="businessName"
-            type="text"
-            placeholder="Enter your business name"
-            value={businessName}
-            onChange={(e) => setBusinessName(e.target.value)}
-            className="w-full"
-          />
-        </div>
+    <div className="space-y-4">
+      <QRCustomizer 
+        businessName={businessName}
+        onBusinessNameChange={setBusinessName}
+        additionalText={additionalText}
+        onAdditionalTextChange={setAdditionalText}
+        selectedFont={selectedFont}
+        onFontChange={setSelectedFont}
+      />
 
-        {/* QR Code Preview */}
-        <div 
-          ref={previewRef}
-          className="w-full max-w-md mx-auto p-8 rounded-lg shadow-lg"
-          style={{ backgroundColor: template.backgroundColor }}
-        >
-          <div className="text-center space-y-6">
-            {businessName && (
-              <div>
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Building2 size={24} style={{ color: template.accentColor }} />
-                  <h2 
-                    className="text-xl font-bold"
-                    style={{ color: template.textColor }}
-                  >
-                    {businessName}
-                  </h2>
-                </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Eye size={20} className="text-primary" />
+            미리보기
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative bg-white rounded-lg p-4 shadow-lg border-2 border-gray-200">
+              <canvas
+                ref={canvasRef}
+                className="max-w-full h-auto rounded"
+                style={{ maxWidth: '400px', maxHeight: '400px' }}
+              />
+            </div>
+            
+            {!printSize && (
+              <div className="text-center text-muted-foreground">
+                <p>먼저 인쇄 크기를 선택해주세요</p>
               </div>
             )}
             
-            <div>
-              <h3 
-                className="text-lg font-semibold mb-2"
-                style={{ color: template.textColor }}
-              >
-                Free WiFi
-              </h3>
-              <p 
-                className="text-sm mb-4"
-                style={{ color: template.textColor, opacity: 0.8 }}
-              >
-                Scan QR code to connect
-              </p>
-            </div>
-
-            {qrDataUrl && (
-              <div className="flex justify-center">
-                <div 
-                  className={`p-4 bg-white rounded-lg inline-block ${
-                    template.borderStyle === 'solid' ? 'border-2' :
-                    template.borderStyle === 'dashed' ? 'border-2 border-dashed' :
-                    template.borderStyle === 'rounded' ? 'border border-opacity-30' : ''
-                  }`}
-                  style={{ 
-                    borderColor: template.borderStyle !== 'none' ? template.accentColor : 'transparent'
-                  }}
-                >
-                  <img 
-                    src={qrDataUrl} 
-                    alt="WiFi QR Code"
-                    className="w-48 h-48 max-w-full"
-                  />
-                </div>
+            {printSize && !template && (
+              <div className="text-center text-muted-foreground">
+                <p>템플릿을 선택해주세요</p>
+              </div>
+            )}
+            
+            {!qrImage && !isGenerating && template && printSize && (
+              <div className="text-center text-muted-foreground">
+                <p>WiFi 정보를 입력하면</p>
+                <p>QR 코드 미리보기가 표시됩니다</p>
+              </div>
+            )}
+            
+            {isGenerating && (
+              <div className="text-center text-muted-foreground">
+                <p>QR 코드를 생성하는 중...</p>
               </div>
             )}
 
-            <div className="space-y-1">
-              <p 
-                className="font-mono text-sm font-medium"
-                style={{ color: template.accentColor }}
-              >
-                {config.ssid}
+            {printSize && (
+              <p className="text-xs text-muted-foreground text-center">
+                인쇄 크기: {printSize.description}
               </p>
-              {config.security !== 'nopass' && (
-                <p 
-                  className="text-xs"
-                  style={{ color: template.textColor, opacity: 0.6 }}
-                >
-                  Password: {config.password}
-                </p>
-              )}
-            </div>
+            )}
           </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Button 
-            onClick={handleDownloadPNG}
-            className="flex-1"
-            variant="gradient"
-            disabled={!qrDataUrl || isGenerating}
-          >
-            <Download size={16} />
-            Download PNG
-          </Button>
-          
-          <Button 
-            onClick={handleDownloadPDF}
-            className="flex-1"
-            variant="default"
-            disabled={!qrDataUrl || isGenerating}
-          >
-            <Download size={16} />
-            Download PDF
-          </Button>
-          
-          <Button 
-            onClick={handleShare}
-            variant="outline"
-            disabled={!qrDataUrl || isGenerating}
-          >
-            <Share2 size={16} />
-            Share
-          </Button>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Button 
+          onClick={handleDownload} 
+          disabled={!qrImage || isGenerating}
+          className="flex items-center gap-2"
+        >
+          <FileImage size={16} />
+          PNG 다운로드
+        </Button>
+        
+        <Button 
+          onClick={handlePDFExport} 
+          disabled={!qrImage || isGenerating}
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <FileText size={16} />
+          PDF 내보내기
+        </Button>
+        
+        <Button 
+          onClick={() => onShare(qrImage || undefined)} 
+          variant="outline"
+          className="flex items-center gap-2"
+        >
+          <Share2 size={16} />
+          공유하기
+        </Button>
+      </div>
 
-        {!qrDataUrl && !isGenerating && (
-          <div className="text-center text-muted-foreground">
-            <p className="text-sm">Fill in the WiFi details to generate QR code</p>
-          </div>
-        )}
-
-        {isGenerating && (
-          <div className="text-center">
-            <div className="inline-flex items-center gap-2 text-primary">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
-              <span className="text-sm">Generating QR code...</span>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      <AdInterstitial 
+        isOpen={showAdInterstitial}
+        onClose={() => {
+          setShowAdInterstitial(false);
+          setPendingAction(null);
+        }}
+        onComplete={handleAdComplete}
+        title={pendingAction === 'download' ? 'PNG 다운로드 준비 중...' : 'PDF 내보내기 준비 중...'}
+      />
+    </div>
   );
 };
