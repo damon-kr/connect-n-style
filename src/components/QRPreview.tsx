@@ -53,9 +53,8 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       // Clear canvas
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Set background
-      ctx.fillStyle = template.backgroundColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Render background with pattern
+      renderBackground(ctx, canvas, template);
       
       // Apply border style
       if (template.borderStyle !== 'none') {
@@ -80,13 +79,26 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         }
       }
       
+      // Add decorative elements
+      if (template.decorativeElements) {
+        renderDecorativeElements(ctx, canvas, template);
+      }
+      
       // Load and draw QR code
       const img = new Image();
       img.onload = () => {
         try {
-          const qrSize = Math.min(canvas.width, canvas.height) * 0.5;
-          const x = (canvas.width - qrSize) / 2;
-          const y = (canvas.height - qrSize) / 2;
+          // Calculate QR size based on template settings
+          const qrSizeMultiplier = {
+            small: 0.3,
+            medium: 0.5,
+            large: 0.7
+          }[template.qrSizeRatio] || 0.5;
+          
+          const qrSize = Math.min(canvas.width, canvas.height) * qrSizeMultiplier;
+          
+          // Calculate QR position based on layout
+          const qrPosition = calculateQRPosition(canvas, qrSize, template.layout);
           
           // Add subtle shadow for QR code
           ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
@@ -94,7 +106,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 4;
           
-          ctx.drawImage(img, x, y, qrSize, qrSize);
+          ctx.drawImage(img, qrPosition.x, qrPosition.y, qrSize, qrSize);
           
           // Reset shadow
           ctx.shadowColor = 'transparent';
@@ -102,68 +114,8 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
           
-          // Add text based on position settings
-          if (businessName && textPosition) {
-            const businessTextSize = Math.max(fontSize, canvas.width / 25);
-            ctx.fillStyle = template.textColor;
-            ctx.font = `${fontWeight} ${businessTextSize}px ${selectedFont}`;
-            
-            // Calculate position
-            const textX = canvas.width * textPosition.x;
-            const textY = canvas.height * textPosition.y;
-            
-            // Set text alignment based on position
-            ctx.textAlign = textPosition.align;
-            ctx.textBaseline = 'middle';
-            
-            // Add text background for better readability
-            const textMetrics = ctx.measureText(businessName);
-            const textWidth = textMetrics.width;
-            const textHeight = businessTextSize;
-            
-            let bgX = textX;
-            if (textPosition.align === 'center') bgX = textX - textWidth / 2;
-            else if (textPosition.align === 'right') bgX = textX - textWidth;
-            
-            ctx.fillStyle = `${template.backgroundColor}DD`;
-            ctx.fillRect(bgX - 12, textY - textHeight / 2 - 8, textWidth + 24, textHeight + 16);
-            
-            ctx.fillStyle = template.textColor;
-            ctx.fillText(businessName, textX, textY);
-          }
-          
-          // Add additional text if provided
-          if (additionalText && textPosition) {
-            const additionalTextSize = Math.max(fontSize - 4, canvas.width / 30);
-            ctx.fillStyle = template.accentColor;
-            ctx.font = `${fontWeight === 'bold' ? 'normal' : fontWeight} ${additionalTextSize}px ${selectedFont}`;
-            
-            // Position additional text offset from business name
-            let offsetY = 35;
-            if (textPosition.id.includes('top')) offsetY = 35;
-            else if (textPosition.id.includes('bottom')) offsetY = -35;
-            else offsetY = 35;
-            
-            const additionalTextX = canvas.width * textPosition.x;
-            const additionalTextY = canvas.height * textPosition.y + offsetY;
-            
-            ctx.textAlign = textPosition.align;
-            ctx.textBaseline = 'middle';
-            
-            const textMetrics = ctx.measureText(additionalText);
-            const textWidth = textMetrics.width;
-            const textHeight = additionalTextSize;
-            
-            let bgX = additionalTextX;
-            if (textPosition.align === 'center') bgX = additionalTextX - textWidth / 2;
-            else if (textPosition.align === 'right') bgX = additionalTextX - textWidth;
-            
-            ctx.fillStyle = `${template.backgroundColor}DD`;
-            ctx.fillRect(bgX - 8, additionalTextY - textHeight / 2 - 6, textWidth + 16, textHeight + 12);
-            
-            ctx.fillStyle = template.accentColor;
-            ctx.fillText(additionalText, additionalTextX, additionalTextY);
-          }
+          // Add text based on layout and position settings
+          renderText(ctx, canvas, template, qrPosition, qrSize, businessName, additionalText, selectedFont, fontSize, fontWeight, textPosition);
           
           resolve();
         } catch (error) {
@@ -174,6 +126,230 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       img.onerror = () => reject(new Error('Failed to load QR image'));
       img.src = qrDataUrl;
     });
+  };
+
+  const renderBackground = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, template: QRTemplate) => {
+    if (!template.backgroundPattern || template.backgroundPattern === 'none') {
+      ctx.fillStyle = template.backgroundColor;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
+
+    switch (template.backgroundPattern) {
+      case 'gradient':
+        const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        gradient.addColorStop(0, template.backgroundColor);
+        gradient.addColorStop(1, template.accentColor + '20');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        break;
+
+      case 'dots':
+        ctx.fillStyle = template.backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = template.accentColor + '20';
+        const dotSize = 4;
+        const spacing = 20;
+        for (let x = spacing; x < canvas.width; x += spacing) {
+          for (let y = spacing; y < canvas.height; y += spacing) {
+            ctx.beginPath();
+            ctx.arc(x, y, dotSize, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        break;
+
+      case 'lines':
+        ctx.fillStyle = template.backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = template.accentColor + '30';
+        ctx.lineWidth = 1;
+        const lineSpacing = 15;
+        for (let x = 0; x < canvas.width; x += lineSpacing) {
+          ctx.beginPath();
+          ctx.moveTo(x, 0);
+          ctx.lineTo(x, canvas.height);
+          ctx.stroke();
+        }
+        break;
+    }
+  };
+
+  const renderDecorativeElements = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, template: QRTemplate) => {
+    if (!template.decorativeElements) return;
+
+    template.decorativeElements.forEach(element => {
+      switch (element) {
+        case 'corners':
+          const cornerSize = 20;
+          ctx.fillStyle = template.accentColor;
+          // Top-left corner
+          ctx.fillRect(20, 20, cornerSize, 4);
+          ctx.fillRect(20, 20, 4, cornerSize);
+          // Top-right corner
+          ctx.fillRect(canvas.width - 40, 20, cornerSize, 4);
+          ctx.fillRect(canvas.width - 24, 20, 4, cornerSize);
+          // Bottom-left corner
+          ctx.fillRect(20, canvas.height - 24, cornerSize, 4);
+          ctx.fillRect(20, canvas.height - 40, 4, cornerSize);
+          // Bottom-right corner
+          ctx.fillRect(canvas.width - 40, canvas.height - 24, cornerSize, 4);
+          ctx.fillRect(canvas.width - 24, canvas.height - 40, 4, cornerSize);
+          break;
+
+        case 'frame':
+          ctx.strokeStyle = template.accentColor + '40';
+          ctx.lineWidth = 2;
+          ctx.strokeRect(30, 30, canvas.width - 60, canvas.height - 60);
+          break;
+
+        case 'shapes':
+          ctx.fillStyle = template.accentColor + '20';
+          // Add some geometric shapes
+          ctx.beginPath();
+          ctx.arc(50, 50, 15, 0, Math.PI * 2);
+          ctx.fill();
+          
+          ctx.beginPath();
+          ctx.arc(canvas.width - 50, canvas.height - 50, 15, 0, Math.PI * 2);
+          ctx.fill();
+          break;
+      }
+    });
+  };
+
+  const calculateQRPosition = (canvas: HTMLCanvasElement, qrSize: number, layout: QRTemplate['layout']) => {
+    switch (layout) {
+      case 'center':
+        return {
+          x: (canvas.width - qrSize) / 2,
+          y: (canvas.height - qrSize) / 2
+        };
+      case 'top':
+        return {
+          x: (canvas.width - qrSize) / 2,
+          y: canvas.height * 0.15
+        };
+      case 'bottom':
+        return {
+          x: (canvas.width - qrSize) / 2,
+          y: canvas.height * 0.85 - qrSize
+        };
+      case 'split-left':
+        return {
+          x: canvas.width * 0.15,
+          y: (canvas.height - qrSize) / 2
+        };
+      case 'split-right':
+        return {
+          x: canvas.width * 0.85 - qrSize,
+          y: (canvas.height - qrSize) / 2
+        };
+      default:
+        return {
+          x: (canvas.width - qrSize) / 2,
+          y: (canvas.height - qrSize) / 2
+        };
+    }
+  };
+
+  const renderText = (
+    ctx: CanvasRenderingContext2D,
+    canvas: HTMLCanvasElement,
+    template: QRTemplate,
+    qrPosition: { x: number; y: number },
+    qrSize: number,
+    businessName: string,
+    additionalText: string,
+    selectedFont: string,
+    fontSize: number,
+    fontWeight: 'normal' | 'bold',
+    textPosition: any
+  ) => {
+    const getTextArea = () => {
+      switch (template.layout) {
+        case 'top':
+          return {
+            x: canvas.width * 0.1,
+            y: qrPosition.y + qrSize + 20,
+            width: canvas.width * 0.8,
+            height: canvas.height - (qrPosition.y + qrSize + 40)
+          };
+        case 'bottom':
+          return {
+            x: canvas.width * 0.1,
+            y: 20,
+            width: canvas.width * 0.8,
+            height: qrPosition.y - 40
+          };
+        case 'split-left':
+          return {
+            x: qrPosition.x + qrSize + 20,
+            y: canvas.height * 0.2,
+            width: canvas.width - (qrPosition.x + qrSize + 40),
+            height: canvas.height * 0.6
+          };
+        case 'split-right':
+          return {
+            x: 20,
+            y: canvas.height * 0.2,
+            width: qrPosition.x - 40,
+            height: canvas.height * 0.6
+          };
+        default: // center
+          return {
+            x: canvas.width * 0.1,
+            y: qrPosition.y + qrSize + 20,
+            width: canvas.width * 0.8,
+            height: 100
+          };
+      }
+    };
+
+    const textArea = getTextArea();
+
+    if (businessName) {
+      const businessTextSize = Math.max(fontSize, canvas.width / 25);
+      ctx.fillStyle = template.textColor;
+      ctx.font = `${fontWeight} ${businessTextSize}px ${selectedFont}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      const textX = textArea.x + textArea.width / 2;
+      const textY = textArea.y;
+
+      // Add text background for better readability
+      const textMetrics = ctx.measureText(businessName);
+      const textWidth = textMetrics.width;
+      const textHeight = businessTextSize;
+
+      ctx.fillStyle = template.backgroundColor + 'DD';
+      ctx.fillRect(textX - textWidth / 2 - 12, textY - 8, textWidth + 24, textHeight + 16);
+
+      ctx.fillStyle = template.textColor;
+      ctx.fillText(businessName, textX, textY);
+    }
+
+    if (additionalText) {
+      const additionalTextSize = Math.max(fontSize - 4, canvas.width / 30);
+      ctx.fillStyle = template.accentColor;
+      ctx.font = `${fontWeight === 'bold' ? 'normal' : fontWeight} ${additionalTextSize}px ${selectedFont}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      const textX = textArea.x + textArea.width / 2;
+      const textY = textArea.y + (businessName ? 40 : 0);
+
+      const textMetrics = ctx.measureText(additionalText);
+      const textWidth = textMetrics.width;
+      const textHeight = additionalTextSize;
+
+      ctx.fillStyle = template.backgroundColor + 'DD';
+      ctx.fillRect(textX - textWidth / 2 - 8, textY - 6, textWidth + 16, textHeight + 12);
+
+      ctx.fillStyle = template.accentColor;
+      ctx.fillText(additionalText, textX, textY);
+    }
   };
 
   const generateQR = async () => {

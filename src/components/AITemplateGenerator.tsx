@@ -84,6 +84,11 @@ const generateTemplatesFromKeywords = async (keywords: string[]): Promise<QRTemp
     
     const keywordEmoji = businessKeywords.find(k => k.id === selectedKeyword)?.emoji || '✨';
     
+    const layouts = ['center', 'top', 'bottom', 'split-left', 'split-right'] as const;
+    const qrSizes = ['small', 'medium', 'large'] as const;
+    const patterns = ['gradient', 'dots', 'lines', 'none'] as const;
+    const decoratives: Array<('corners' | 'frame' | 'shapes' | 'icons')[]> = [['corners'], ['frame'], ['shapes'], ['corners', 'frame'], ['shapes', 'icons']];
+    
     templates.push({
       id: `ai-generated-${Date.now()}-${i}`,
       name: `AI ${selectedKeyword} ${i + 1} ${keywordEmoji}`,
@@ -92,7 +97,11 @@ const generateTemplatesFromKeywords = async (keywords: string[]): Promise<QRTemp
       accentColor: palette.accent,
       textColor: palette.text,
       borderStyle: palette.border as 'none' | 'solid' | 'dashed' | 'rounded',
-      icon: 'sparkles'
+      icon: 'sparkles',
+      layout: layouts[i % layouts.length],
+      qrSizeRatio: qrSizes[i % qrSizes.length],
+      backgroundPattern: patterns[i % patterns.length],
+      decorativeElements: decoratives[i % decoratives.length]
     });
   }
   

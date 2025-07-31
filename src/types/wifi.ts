@@ -14,6 +14,10 @@ export interface QRTemplate {
   textColor: string;
   borderStyle: 'none' | 'solid' | 'dashed' | 'rounded';
   icon?: string;
+  layout: 'center' | 'top' | 'bottom' | 'split-left' | 'split-right';
+  qrSizeRatio: 'small' | 'medium' | 'large';
+  backgroundPattern?: 'gradient' | 'dots' | 'lines' | 'none';
+  decorativeElements?: ('corners' | 'frame' | 'icons' | 'shapes')[];
 }
 
 export interface GeneratedQR {

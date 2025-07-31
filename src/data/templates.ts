@@ -9,7 +9,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#6366F1',
     textColor: '#1F2937',
     borderStyle: 'rounded',
-    icon: 'wifi'
+    icon: 'wifi',
+    layout: 'center',
+    qrSizeRatio: 'medium',
+    backgroundPattern: 'none',
+    decorativeElements: ['corners']
   },
   {
     id: 'cafe-warm',
@@ -19,7 +23,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#EA580C',
     textColor: '#9A3412',
     borderStyle: 'rounded',
-    icon: 'coffee'
+    icon: 'coffee',
+    layout: 'top',
+    qrSizeRatio: 'large',
+    backgroundPattern: 'gradient',
+    decorativeElements: ['frame', 'icons']
   },
   {
     id: 'business-professional',
@@ -29,7 +37,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#0F172A',
     textColor: '#334155',
     borderStyle: 'solid',
-    icon: 'building'
+    icon: 'building',
+    layout: 'split-left',
+    qrSizeRatio: 'medium',
+    backgroundPattern: 'lines',
+    decorativeElements: ['frame']
   },
   {
     id: 'vibrant-creative',
@@ -39,7 +51,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#A855F7',
     textColor: '#581C87',
     borderStyle: 'none',
-    icon: 'palette'
+    icon: 'palette',
+    layout: 'bottom',
+    qrSizeRatio: 'large',
+    backgroundPattern: 'gradient',
+    decorativeElements: ['shapes', 'icons']
   },
   {
     id: 'nature-green',
@@ -49,7 +65,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#16A34A',
     textColor: '#14532D',
     borderStyle: 'rounded',
-    icon: 'leaf'
+    icon: 'leaf',
+    layout: 'center',
+    qrSizeRatio: 'medium',
+    backgroundPattern: 'dots',
+    decorativeElements: ['corners', 'shapes']
   },
   {
     id: 'tech-dark',
@@ -59,7 +79,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#06B6D4',
     textColor: '#E2E8F0',
     borderStyle: 'solid',
-    icon: 'monitor'
+    icon: 'monitor',
+    layout: 'split-right',
+    qrSizeRatio: 'small',
+    backgroundPattern: 'gradient',
+    decorativeElements: ['frame', 'shapes']
   },
   {
     id: 'elegant-gold',
@@ -69,7 +93,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#D97706',
     textColor: '#92400E',
     borderStyle: 'rounded',
-    icon: 'crown'
+    icon: 'crown',
+    layout: 'top',
+    qrSizeRatio: 'medium',
+    backgroundPattern: 'gradient',
+    decorativeElements: ['corners', 'frame']
   },
   {
     id: 'retro-vintage',
@@ -79,7 +107,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#DC2626',
     textColor: '#7F1D1D',
     borderStyle: 'dashed',
-    icon: 'radio'
+    icon: 'radio',
+    layout: 'bottom',
+    qrSizeRatio: 'large',
+    backgroundPattern: 'dots',
+    decorativeElements: ['corners', 'icons']
   },
   {
     id: 'cute-pastel',
@@ -89,7 +121,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#EC4899',
     textColor: '#BE185D',
     borderStyle: 'rounded',
-    icon: 'wifi'
+    icon: 'wifi',
+    layout: 'center',
+    qrSizeRatio: 'small',
+    backgroundPattern: 'dots',
+    decorativeElements: ['shapes']
   },
   {
     id: 'classic-elegant',
@@ -99,7 +135,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#475569',
     textColor: '#1E293B',
     borderStyle: 'solid',
-    icon: 'building'
+    icon: 'building',
+    layout: 'split-left',
+    qrSizeRatio: 'medium',
+    backgroundPattern: 'lines',
+    decorativeElements: ['frame']
   },
   {
     id: 'trendy-neon',
@@ -109,7 +149,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#10B981',
     textColor: '#D1FAE5',
     borderStyle: 'none',
-    icon: 'palette'
+    icon: 'palette',
+    layout: 'split-right',
+    qrSizeRatio: 'large',
+    backgroundPattern: 'gradient',
+    decorativeElements: ['shapes', 'icons']
   },
   {
     id: 'rustic-vintage',
@@ -119,7 +163,11 @@ export const qrTemplates: QRTemplate[] = [
     accentColor: '#92400E',
     textColor: '#451A03',
     borderStyle: 'dashed',
-    icon: 'radio'
+    icon: 'radio',
+    layout: 'bottom',
+    qrSizeRatio: 'medium',
+    backgroundPattern: 'dots',
+    decorativeElements: ['corners', 'frame']
   }
 ];
 
