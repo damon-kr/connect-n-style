@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Type, Move } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Palette, Type, Move } from 'lucide-react';
+import { TextPositionSelector, TextPosition, textPositions } from '@/components/TextPositionSelector';
 
 interface TextElement {
   id: string;
@@ -20,95 +22,136 @@ interface QRCustomizerProps {
   onAdditionalTextChange: (text: string) => void;
   selectedFont: string;
   onFontChange: (font: string) => void;
+  textPosition: TextPosition | null;
+  onTextPositionChange: (position: TextPosition) => void;
+  fontSize: number;
+  onFontSizeChange: (size: number) => void;
+  fontWeight: 'normal' | 'bold';
+  onFontWeightChange: (weight: 'normal' | 'bold') => void;
 }
 
 const fonts = [
-  { id: 'inter', name: 'Inter (기본)', family: 'Inter, sans-serif' },
-  { id: 'noto-sans-kr', name: 'Noto Sans KR', family: '"Noto Sans KR", sans-serif' },
-  { id: 'pretendard', name: 'Pretendard', family: 'Pretendard, sans-serif' },
-  { id: 'nanum-gothic', name: '나눔고딕', family: '"Nanum Gothic", sans-serif' },
-  { id: 'malgun-gothic', name: '맑은 고딕', family: '"Malgun Gothic", sans-serif' },
-  { id: 'gulim', name: '굴림', family: 'Gulim, sans-serif' },
+  { id: 'inter', name: 'Inter (기본)', fontFamily: 'Inter, sans-serif' },
+  { id: 'noto-sans-kr', name: 'Noto Sans KR', fontFamily: '"Noto Sans KR", sans-serif' },
+  { id: 'pretendard', name: 'Pretendard', fontFamily: 'Pretendard, sans-serif' },
+  { id: 'nanum-gothic', name: '나눔고딕', fontFamily: '"Nanum Gothic", sans-serif' },
+  { id: 'malgun-gothic', name: '맑은 고딕', fontFamily: '"Malgun Gothic", sans-serif' },
+  { id: 'gulim', name: '굴림', fontFamily: 'Gulim, sans-serif' },
 ];
 
 export const QRCustomizer = ({ 
   businessName, 
   onBusinessNameChange, 
   additionalText, 
-  onAdditionalTextChange,
-  selectedFont,
-  onFontChange 
+  onAdditionalTextChange, 
+  selectedFont, 
+  onFontChange,
+  textPosition,
+  onTextPositionChange,
+  fontSize,
+  onFontSizeChange,
+  fontWeight,
+  onFontWeightChange
 }: QRCustomizerProps) => {
   return (
-    <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Type size={20} className="text-primary" />
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Palette size={20} className="text-primary" />
           텍스트 커스터마이징
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label htmlFor="businessName" className="text-sm font-medium">
-            비즈니스 이름 (선택사항)
-          </Label>
-          <Input
-            id="businessName"
-            type="text"
-            placeholder="카페명, 상호명 등"
-            value={businessName}
-            onChange={(e) => onBusinessNameChange(e.target.value)}
-            className="w-full"
-            maxLength={50}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="additionalText" className="text-sm font-medium">
-            추가 안내 문구 (선택사항)
-          </Label>
-          <Input
-            id="additionalText"
-            type="text"
-            placeholder="예: 무료 WiFi, Free WiFi, 스캔하여 연결하세요"
-            value={additionalText}
-            onChange={(e) => onAdditionalTextChange(e.target.value)}
-            className="w-full"
-            maxLength={100}
-          />
-          <p className="text-xs text-muted-foreground">
-            QR코드 상단이나 하단에 표시될 문구입니다
-          </p>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="font" className="text-sm font-medium">
-            폰트 선택
-          </Label>
-          <Select value={selectedFont} onValueChange={onFontChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="폰트를 선택하세요" />
-            </SelectTrigger>
-            <SelectContent>
-              {fonts.map((font) => (
-                <SelectItem key={font.id} value={font.id}>
-                  <span style={{ fontFamily: font.family }}>{font.name}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="bg-muted/30 border border-muted-foreground/20 rounded-lg p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <Move size={16} className="text-primary" />
-            <span className="text-sm font-medium">드래그 앤 드롭</span>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* 텍스트 입력 섹션 */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="businessName">업체명 또는 타이틀</Label>
+                <Input
+                  id="businessName"
+                  placeholder="예: 스타벅스 강남점"
+                  value={businessName}
+                  onChange={(e) => onBusinessNameChange(e.target.value)}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="additionalText">추가 설명</Label>
+                <Input
+                  id="additionalText"
+                  placeholder="예: Free WiFi Available"
+                  value={additionalText}
+                  onChange={(e) => onAdditionalTextChange(e.target.value)}
+                />
+              </div>
+            </div>
+            
+            {/* 폰트 및 스타일 섹션 */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>폰트 선택</Label>
+                <Select value={selectedFont} onValueChange={onFontChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="폰트를 선택하세요" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fonts.map((font) => (
+                      <SelectItem key={font.id} value={font.id}>
+                        <span style={{ fontFamily: font.fontFamily }}>
+                          {font.name}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div className="space-y-2">
+                <Label>폰트 크기: {fontSize}px</Label>
+                <Slider
+                  value={[fontSize]}
+                  onValueChange={(value) => onFontSizeChange(value[0])}
+                  max={32}
+                  min={12}
+                  step={2}
+                  className="w-full"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label>폰트 굵기</Label>
+                <Select value={fontWeight} onValueChange={onFontWeightChange}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="normal">일반</SelectItem>
+                    <SelectItem value="bold">굵게</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {/* 위치 선택 섹션 */}
+            <div className="space-y-4">
+              <TextPositionSelector 
+                selectedPosition={textPosition}
+                onPositionChange={onTextPositionChange}
+              />
+              
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm text-muted-foreground mb-2">
+                  💡 <strong>커스터마이징 팁</strong>
+                </p>
+                <ul className="text-xs text-muted-foreground space-y-1">
+                  <li>• 업체명과 설명이 QR코드와 함께 표시됩니다</li>
+                  <li>• 템플릿 색상에 어울리는 폰트가 자동 설정됩니다</li>
+                  <li>• 텍스트 위치를 변경해서 최적의 레이아웃을 만드세요</li>
+                </ul>
+              </div>
+            </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            미리보기에서 텍스트를 드래그하여 위치를 조정할 수 있습니다.
-          </p>
-        </div>
-      </CardContent>
+        </CardContent>
     </Card>
   );
 };
