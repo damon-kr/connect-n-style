@@ -129,6 +129,16 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   };
 
   const renderBackground = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, template: QRTemplate) => {
+    // AI 생성 배경이 있는 경우 먼저 렌더링
+    if (template.aiGeneratedBackground) {
+      const img = new Image();
+      img.onload = () => {
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      };
+      img.src = template.aiGeneratedBackground;
+      return;
+    }
+
     if (!template.backgroundPattern || template.backgroundPattern === 'none') {
       ctx.fillStyle = template.backgroundColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -221,21 +231,25 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const calculateQRPosition = (canvas: HTMLCanvasElement, qrSize: number, layout: QRTemplate['layout']) => {
     switch (layout) {
       case 'center':
+      case 'vertical_centered':
         return {
           x: (canvas.width - qrSize) / 2,
           y: (canvas.height - qrSize) / 2
         };
       case 'top':
+      case 'top_heavy':
         return {
           x: (canvas.width - qrSize) / 2,
           y: canvas.height * 0.15
         };
       case 'bottom':
+      case 'bottom_heavy':
         return {
           x: (canvas.width - qrSize) / 2,
           y: canvas.height * 0.85 - qrSize
         };
       case 'split-left':
+      case 'horizontal_split':
         return {
           x: canvas.width * 0.15,
           y: (canvas.height - qrSize) / 2
@@ -244,6 +258,11 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         return {
           x: canvas.width * 0.85 - qrSize,
           y: (canvas.height - qrSize) / 2
+        };
+      case 'tag_style':
+        return {
+          x: (canvas.width - qrSize) / 2,
+          y: canvas.height * 0.3
         };
       default:
         return {
@@ -269,6 +288,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     const getTextArea = () => {
       switch (template.layout) {
         case 'top':
+        case 'top_heavy':
           return {
             x: canvas.width * 0.1,
             y: qrPosition.y + qrSize + 20,
@@ -276,6 +296,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
             height: canvas.height - (qrPosition.y + qrSize + 40)
           };
         case 'bottom':
+        case 'bottom_heavy':
           return {
             x: canvas.width * 0.1,
             y: 20,
@@ -283,6 +304,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
             height: qrPosition.y - 40
           };
         case 'split-left':
+        case 'horizontal_split':
           return {
             x: qrPosition.x + qrSize + 20,
             y: canvas.height * 0.2,
@@ -295,6 +317,20 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
             y: canvas.height * 0.2,
             width: qrPosition.x - 40,
             height: canvas.height * 0.6
+          };
+        case 'vertical_centered':
+          return {
+            x: canvas.width * 0.1,
+            y: qrPosition.y + qrSize + 20,
+            width: canvas.width * 0.8,
+            height: canvas.height - (qrPosition.y + qrSize + 40)
+          };
+        case 'tag_style':
+          return {
+            x: canvas.width * 0.1,
+            y: qrPosition.y + qrSize + 20,
+            width: canvas.width * 0.8,
+            height: canvas.height - (qrPosition.y + qrSize + 40)
           };
         default: // center
           return {

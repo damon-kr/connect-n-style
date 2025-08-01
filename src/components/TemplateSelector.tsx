@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CheckCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { AITemplateGenerator } from '@/components/AITemplateGenerator';
+import { AIDesignGenerator } from '@/components/AIDesignGenerator';
 
 interface TemplateSelectorProps {
   selectedTemplate: QRTemplate | null;
@@ -24,7 +24,7 @@ export const TemplateSelector = ({ selectedTemplate, onTemplateSelect, printSize
   return (
     <div className="space-y-6">
       {/* AI 템플릿 생성 섹션 */}
-      <AITemplateGenerator onTemplateGenerated={handleAITemplatesGenerated} />
+      <AIDesignGenerator onTemplateGenerated={handleAITemplatesGenerated} />
       
       <Card>
         <CardHeader>
