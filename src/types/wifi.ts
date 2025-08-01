@@ -22,6 +22,16 @@ export interface QRTemplate {
   category?: 'minimal_business' | 'cafe_vintage' | 'modern_bold' | 'friendly_colorful';
 }
 
+export interface AIGeneratedTemplate {
+  id: string;
+  name: string;
+  generatedImageUrl: string; // AI 생성 배경 이미지
+  layoutType: 'vertical_centered' | 'horizontal_split' | 'top_heavy' | 'bottom_heavy' | 'tag_style';
+  printOptimized: boolean;
+  category: 'minimal_business' | 'cafe_vintage' | 'modern_bold' | 'friendly_colorful';
+  prompt: string;
+}
+
 export interface GeneratedQR {
   dataUrl: string;
   config: WiFiConfig;
