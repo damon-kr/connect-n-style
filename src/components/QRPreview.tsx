@@ -321,93 +321,133 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       // 레이아웃 기반 자동 위치 계산
       const margin = spacing.medium;
       
-      switch (template.layout) {
-        case 'top':
-        case 'top_heavy':
-          if (isWifiInfo) {
-            return {
-              x: margin,
-              y: qrPosition.y + qrSize + spacing.large,
-              width: canvas.width - margin * 2,
-              height: canvas.height - (qrPosition.y + qrSize + spacing.large + margin)
-            };
-          }
-          return {
-            x: margin,
-            y: qrPosition.y + qrSize + spacing.medium,
-            width: canvas.width - margin * 2,
-            height: spacing.extraLarge
-          };
+          // 가로/세로 비율에 따른 레이아웃 자동 조정
+          const isLandscape = canvas.width > canvas.height;
+          const aspectRatio = canvas.width / canvas.height;
           
-        case 'bottom':
-        case 'bottom_heavy':
-          if (isWifiInfo) {
-            return {
-              x: margin,
-              y: margin,
-              width: canvas.width - margin * 2,
-              height: qrPosition.y - spacing.large - margin
-            };
+          switch (template.layout) {
+            case 'top':
+            case 'top_heavy':
+              if (isWifiInfo) {
+                return {
+                  x: margin,
+                  y: qrPosition.y + qrSize + (isLandscape ? spacing.medium : spacing.large),
+                  width: canvas.width - margin * 2,
+                  height: canvas.height - (qrPosition.y + qrSize + (isLandscape ? spacing.medium : spacing.large) + margin)
+                };
+              }
+              return {
+                x: margin,
+                y: qrPosition.y + qrSize + spacing.medium,
+                width: canvas.width - margin * 2,
+                height: isLandscape ? spacing.large : spacing.extraLarge
+              };
+              
+            case 'bottom':
+            case 'bottom_heavy':
+              if (isWifiInfo) {
+                return {
+                  x: margin,
+                  y: margin,
+                  width: canvas.width - margin * 2,
+                  height: qrPosition.y - (isLandscape ? spacing.medium : spacing.large) - margin
+                };
+              }
+              return {
+                x: margin,
+                y: qrPosition.y - (isLandscape ? spacing.large : spacing.extraLarge) - spacing.medium,
+                width: canvas.width - margin * 2,
+                height: isLandscape ? spacing.large : spacing.extraLarge
+              };
+              
+            case 'split-left':
+            case 'horizontal_split':
+              // 가로형에 최적화된 레이아웃
+              if (isLandscape && aspectRatio > 1.4) {
+                if (isWifiInfo) {
+                  return {
+                    x: qrPosition.x + qrSize + spacing.large,
+                    y: canvas.height * 0.65,
+                    width: canvas.width - (qrPosition.x + qrSize + spacing.large + margin),
+                    height: canvas.height * 0.25
+                  };
+                }
+                return {
+                  x: qrPosition.x + qrSize + spacing.medium,
+                  y: canvas.height * 0.15,
+                  width: canvas.width - (qrPosition.x + qrSize + spacing.medium + margin),
+                  height: canvas.height * 0.45
+                };
+              } else {
+                // 세로형이거나 비율이 낮은 경우
+                if (isWifiInfo) {
+                  return {
+                    x: margin,
+                    y: qrPosition.y + qrSize + spacing.large,
+                    width: canvas.width - margin * 2,
+                    height: canvas.height - (qrPosition.y + qrSize + spacing.large + margin)
+                  };
+                }
+                return {
+                  x: margin,
+                  y: qrPosition.y + qrSize + spacing.medium,
+                  width: canvas.width - margin * 2,
+                  height: spacing.extraLarge
+                };
+              }
+              
+            case 'split-right':
+              if (isLandscape && aspectRatio > 1.4) {
+                if (isWifiInfo) {
+                  return {
+                    x: margin,
+                    y: canvas.height * 0.65,
+                    width: qrPosition.x - spacing.large - margin,
+                    height: canvas.height * 0.25
+                  };
+                }
+                return {
+                  x: margin,
+                  y: canvas.height * 0.15,
+                  width: qrPosition.x - spacing.medium - margin,
+                  height: canvas.height * 0.45
+                };
+              } else {
+                if (isWifiInfo) {
+                  return {
+                    x: margin,
+                    y: qrPosition.y + qrSize + spacing.large,
+                    width: canvas.width - margin * 2,
+                    height: canvas.height - (qrPosition.y + qrSize + spacing.large + margin)
+                  };
+                }
+                return {
+                  x: margin,
+                  y: qrPosition.y + qrSize + spacing.medium,
+                  width: canvas.width - margin * 2,
+                  height: spacing.extraLarge
+                };
+              }
+              
+            case 'vertical_centered':
+            case 'tag_style':
+            case 'center':
+            default:
+              if (isWifiInfo) {
+                return {
+                  x: margin,
+                  y: qrPosition.y + qrSize + (isLandscape ? spacing.large : spacing.extraLarge) + spacing.medium,
+                  width: canvas.width - margin * 2,
+                  height: canvas.height - (qrPosition.y + qrSize + (isLandscape ? spacing.large : spacing.extraLarge) + spacing.medium + margin)
+                };
+              }
+              return {
+                x: margin,
+                y: qrPosition.y + qrSize + spacing.medium,
+                width: canvas.width - margin * 2,
+                height: isLandscape ? spacing.large : spacing.extraLarge
+              };
           }
-          return {
-            x: margin,
-            y: qrPosition.y - spacing.extraLarge - spacing.medium,
-            width: canvas.width - margin * 2,
-            height: spacing.extraLarge
-          };
-          
-        case 'split-left':
-        case 'horizontal_split':
-          if (isWifiInfo) {
-            return {
-              x: qrPosition.x + qrSize + spacing.large,
-              y: canvas.height * 0.6,
-              width: canvas.width - (qrPosition.x + qrSize + spacing.large + margin),
-              height: canvas.height * 0.3
-            };
-          }
-          return {
-            x: qrPosition.x + qrSize + spacing.medium,
-            y: canvas.height * 0.2,
-            width: canvas.width - (qrPosition.x + qrSize + spacing.medium + margin),
-            height: canvas.height * 0.35
-          };
-          
-        case 'split-right':
-          if (isWifiInfo) {
-            return {
-              x: margin,
-              y: canvas.height * 0.6,
-              width: qrPosition.x - spacing.large - margin,
-              height: canvas.height * 0.3
-            };
-          }
-          return {
-            x: margin,
-            y: canvas.height * 0.2,
-            width: qrPosition.x - spacing.medium - margin,
-            height: canvas.height * 0.35
-          };
-          
-        case 'vertical_centered':
-        case 'tag_style':
-        case 'center':
-        default:
-          if (isWifiInfo) {
-            return {
-              x: margin,
-              y: qrPosition.y + qrSize + spacing.extraLarge + spacing.medium,
-              width: canvas.width - margin * 2,
-              height: canvas.height - (qrPosition.y + qrSize + spacing.extraLarge + spacing.medium + margin)
-            };
-          }
-          return {
-            x: margin,
-            y: qrPosition.y + qrSize + spacing.medium,
-            width: canvas.width - margin * 2,
-            height: spacing.extraLarge
-          };
-      }
     };
 
     const businessTextArea = getTextArea(textPosition, false);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { WiFiConfig, QRTemplate } from '@/types/wifi';
-import { PrintSize } from '@/types/size';
+import { PrintSize, PrintOrientation } from '@/types/size';
 import { WiFiForm } from '@/components/WiFiForm';
 import { PrintSizeSelector } from '@/components/PrintSizeSelector';
 import { TemplateSelector } from '@/components/TemplateSelector';
@@ -22,6 +22,7 @@ const Index = () => {
   });
   
   const [selectedSize, setSelectedSize] = useState<PrintSize | null>(null);
+  const [selectedOrientation, setSelectedOrientation] = useState<PrintOrientation['id']>('landscape');
   const [selectedTemplate, setSelectedTemplate] = useState<QRTemplate | null>(null);
   const [generatedCount, setGeneratedCount] = useState(0);
   const [shareModalOpen, setShareModalOpen] = useState(false);
@@ -129,7 +130,9 @@ const Index = () => {
               
               <PrintSizeSelector 
                 selectedSize={selectedSize}
+                selectedOrientation={selectedOrientation}
                 onSizeSelect={setSelectedSize}
+                onOrientationSelect={setSelectedOrientation}
               />
             </div>
 

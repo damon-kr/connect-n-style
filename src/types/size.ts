@@ -6,6 +6,25 @@ export interface PrintSize {
   description: string;
 }
 
+export interface PrintOrientation {
+  id: 'landscape' | 'portrait';
+  name: string;
+  icon: string;
+}
+
+export const printOrientations: PrintOrientation[] = [
+  {
+    id: 'landscape',
+    name: '가로형',
+    icon: 'monitor'
+  },
+  {
+    id: 'portrait', 
+    name: '세로형',
+    icon: 'smartphone'
+  }
+];
+
 export const printSizes: PrintSize[] = [
   {
     id: 'business-card',
@@ -50,3 +69,16 @@ export const printSizes: PrintSize[] = [
     description: '150mm × 150mm (벽걸이용)'
   }
 ];
+
+export const getOrientedSize = (size: PrintSize, orientation: PrintOrientation['id']): PrintSize => {
+  if (size.id.includes('square') || orientation === 'landscape') {
+    return size;
+  }
+  
+  // 세로형인 경우 가로/세로 치환
+  return {
+    ...size,
+    width: size.height,
+    height: size.width
+  };
+};
