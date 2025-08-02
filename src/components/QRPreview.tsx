@@ -28,6 +28,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const [textPosition, setTextPosition] = useState<TextPosition | null>(textPositions[0]);
   const [fontSize, setFontSize] = useState(18);
   const [fontWeight, setFontWeight] = useState<'normal' | 'bold'>('bold');
+  const [showWifiInfo, setShowWifiInfo] = useState(false);
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
   const [pendingAction, setPendingAction] = useState<'download' | 'export' | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -115,7 +116,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           ctx.shadowOffsetY = 0;
           
           // Add text based on layout and position settings
-          renderText(ctx, canvas, template, qrPosition, qrSize, businessName, additionalText, selectedFont, fontSize, fontWeight, textPosition);
+          renderText(ctx, canvas, template, qrPosition, qrSize, businessName, additionalText, selectedFont, fontSize, fontWeight, textPosition, config, showWifiInfo);
           
           resolve();
         } catch (error) {
@@ -283,7 +284,9 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     selectedFont: string,
     fontSize: number,
     fontWeight: 'normal' | 'bold',
-    textPosition: any
+    textPosition: any,
+    wifiConfig: WiFiConfig,
+    showWifiInfo: boolean
   ) => {
     const getTextArea = () => {
       switch (template.layout) {
@@ -386,6 +389,41 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       ctx.fillStyle = template.accentColor;
       ctx.fillText(additionalText, textX, textY);
     }
+
+    // WiFi 정보 표시
+    if (showWifiInfo) {
+      const wifiTextSize = Math.max(fontSize - 6, canvas.width / 35);
+      ctx.font = `normal ${wifiTextSize}px ${selectedFont}`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      const textX = textArea.x + textArea.width / 2;
+      let currentY = textArea.y + (businessName ? 40 : 0) + (additionalText ? 35 : 0);
+
+      // 네트워크 이름 표시
+      const ssidText = `WiFi: ${wifiConfig.ssid}`;
+      ctx.fillStyle = template.textColor;
+      const ssidMetrics = ctx.measureText(ssidText);
+      
+      ctx.fillStyle = template.backgroundColor + 'DD';
+      ctx.fillRect(textX - ssidMetrics.width / 2 - 6, currentY - 4, ssidMetrics.width + 12, wifiTextSize + 8);
+      
+      ctx.fillStyle = template.textColor;
+      ctx.fillText(ssidText, textX, currentY);
+      currentY += wifiTextSize + 12;
+
+      // 비밀번호 표시 (보안이 설정된 경우만)
+      if (wifiConfig.security !== 'nopass' && wifiConfig.password) {
+        const passwordText = `Password: ${wifiConfig.password}`;
+        const passwordMetrics = ctx.measureText(passwordText);
+        
+        ctx.fillStyle = template.backgroundColor + 'DD';
+        ctx.fillRect(textX - passwordMetrics.width / 2 - 6, currentY - 4, passwordMetrics.width + 12, wifiTextSize + 8);
+        
+        ctx.fillStyle = template.textColor;
+        ctx.fillText(passwordText, textX, currentY);
+      }
+    }
   };
 
   const generateQR = async () => {
@@ -410,7 +448,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
   useEffect(() => {
     generateQR();
-  }, [config, template, printSize, businessName, additionalText, selectedFont, textPosition, fontSize, fontWeight]);
+  }, [config, template, printSize, businessName, additionalText, selectedFont, textPosition, fontSize, fontWeight, showWifiInfo]);
 
   const handleDownload = () => {
     setPendingAction('download');
@@ -476,6 +514,8 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         onFontSizeChange={setFontSize}
         fontWeight={fontWeight}
         onFontWeightChange={setFontWeight}
+        showWifiInfo={showWifiInfo}
+        onShowWifiInfoChange={setShowWifiInfo}
       />
 
       <Card>

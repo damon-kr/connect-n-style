@@ -4,7 +4,8 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
-import { Palette, Type, Move } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Palette, Type, Move, Wifi } from 'lucide-react';
 import { TextPositionSelector, TextPosition, textPositions } from '@/components/TextPositionSelector';
 
 interface TextElement {
@@ -28,6 +29,8 @@ interface QRCustomizerProps {
   onFontSizeChange: (size: number) => void;
   fontWeight: 'normal' | 'bold';
   onFontWeightChange: (weight: 'normal' | 'bold') => void;
+  showWifiInfo: boolean;
+  onShowWifiInfoChange: (show: boolean) => void;
 }
 
 const fonts = [
@@ -51,7 +54,9 @@ export const QRCustomizer = ({
   fontSize,
   onFontSizeChange,
   fontWeight,
-  onFontWeightChange
+  onFontWeightChange,
+  showWifiInfo,
+  onShowWifiInfoChange
 }: QRCustomizerProps) => {
   return (
     <Card>
@@ -83,6 +88,23 @@ export const QRCustomizer = ({
                   value={additionalText}
                   onChange={(e) => onAdditionalTextChange(e.target.value)}
                 />
+              </div>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Wifi size={16} className="text-primary" />
+                  <Label htmlFor="showWifiInfo">WiFi 정보 표시</Label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="showWifiInfo"
+                    checked={showWifiInfo}
+                    onCheckedChange={onShowWifiInfoChange}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    네트워크 이름과 비밀번호 표시
+                  </span>
+                </div>
               </div>
             </div>
             
