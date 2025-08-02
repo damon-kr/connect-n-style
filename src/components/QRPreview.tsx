@@ -292,78 +292,131 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     wifiInfoFont: string,
     wifiInfoPosition: any
   ) => {
-    const getTextArea = (position: any) => {
+    // 반응형 간격 계산
+    const getSpacing = () => {
+      const baseSpacing = Math.min(canvas.width, canvas.height) * 0.02;
+      return {
+        small: baseSpacing,
+        medium: baseSpacing * 1.5,
+        large: baseSpacing * 2.5,
+        extraLarge: baseSpacing * 4
+      };
+    };
+
+    const spacing = getSpacing();
+
+    const getTextArea = (position: any, isWifiInfo: boolean = false) => {
+      // 사용자 정의 위치가 있는 경우
       if (position) {
+        const areaWidth = canvas.width * 0.6;
+        const areaHeight = canvas.height * 0.3;
         return {
-          x: canvas.width * position.x - 100,
-          y: canvas.height * position.y - 20,
-          width: 200,
-          height: 100
+          x: canvas.width * position.x - areaWidth / 2,
+          y: canvas.height * position.y - areaHeight / 2,
+          width: areaWidth,
+          height: areaHeight
         };
       }
       
-      // 기본 레이아웃 기반 위치
+      // 레이아웃 기반 자동 위치 계산
+      const margin = spacing.medium;
+      
       switch (template.layout) {
         case 'top':
         case 'top_heavy':
+          if (isWifiInfo) {
+            return {
+              x: margin,
+              y: qrPosition.y + qrSize + spacing.large,
+              width: canvas.width - margin * 2,
+              height: canvas.height - (qrPosition.y + qrSize + spacing.large + margin)
+            };
+          }
           return {
-            x: canvas.width * 0.1,
-            y: qrPosition.y + qrSize + 20,
-            width: canvas.width * 0.8,
-            height: canvas.height - (qrPosition.y + qrSize + 40)
+            x: margin,
+            y: qrPosition.y + qrSize + spacing.medium,
+            width: canvas.width - margin * 2,
+            height: spacing.extraLarge
           };
+          
         case 'bottom':
         case 'bottom_heavy':
+          if (isWifiInfo) {
+            return {
+              x: margin,
+              y: margin,
+              width: canvas.width - margin * 2,
+              height: qrPosition.y - spacing.large - margin
+            };
+          }
           return {
-            x: canvas.width * 0.1,
-            y: 20,
-            width: canvas.width * 0.8,
-            height: qrPosition.y - 40
+            x: margin,
+            y: qrPosition.y - spacing.extraLarge - spacing.medium,
+            width: canvas.width - margin * 2,
+            height: spacing.extraLarge
           };
+          
         case 'split-left':
         case 'horizontal_split':
+          if (isWifiInfo) {
+            return {
+              x: qrPosition.x + qrSize + spacing.large,
+              y: canvas.height * 0.6,
+              width: canvas.width - (qrPosition.x + qrSize + spacing.large + margin),
+              height: canvas.height * 0.3
+            };
+          }
           return {
-            x: qrPosition.x + qrSize + 20,
+            x: qrPosition.x + qrSize + spacing.medium,
             y: canvas.height * 0.2,
-            width: canvas.width - (qrPosition.x + qrSize + 40),
-            height: canvas.height * 0.6
+            width: canvas.width - (qrPosition.x + qrSize + spacing.medium + margin),
+            height: canvas.height * 0.35
           };
+          
         case 'split-right':
+          if (isWifiInfo) {
+            return {
+              x: margin,
+              y: canvas.height * 0.6,
+              width: qrPosition.x - spacing.large - margin,
+              height: canvas.height * 0.3
+            };
+          }
           return {
-            x: 20,
+            x: margin,
             y: canvas.height * 0.2,
-            width: qrPosition.x - 40,
-            height: canvas.height * 0.6
+            width: qrPosition.x - spacing.medium - margin,
+            height: canvas.height * 0.35
           };
+          
         case 'vertical_centered':
-          return {
-            x: canvas.width * 0.1,
-            y: qrPosition.y + qrSize + 20,
-            width: canvas.width * 0.8,
-            height: canvas.height - (qrPosition.y + qrSize + 40)
-          };
         case 'tag_style':
+        case 'center':
+        default:
+          if (isWifiInfo) {
+            return {
+              x: margin,
+              y: qrPosition.y + qrSize + spacing.extraLarge + spacing.medium,
+              width: canvas.width - margin * 2,
+              height: canvas.height - (qrPosition.y + qrSize + spacing.extraLarge + spacing.medium + margin)
+            };
+          }
           return {
-            x: canvas.width * 0.1,
-            y: qrPosition.y + qrSize + 20,
-            width: canvas.width * 0.8,
-            height: canvas.height - (qrPosition.y + qrSize + 40)
-          };
-        default: // center
-          return {
-            x: canvas.width * 0.1,
-            y: qrPosition.y + qrSize + 20,
-            width: canvas.width * 0.8,
-            height: 100
+            x: margin,
+            y: qrPosition.y + qrSize + spacing.medium,
+            width: canvas.width - margin * 2,
+            height: spacing.extraLarge
           };
       }
     };
 
-    const businessTextArea = getTextArea(textPosition);
-    const wifiTextArea = getTextArea(wifiInfoPosition);
+    const businessTextArea = getTextArea(textPosition, false);
+    const wifiTextArea = getTextArea(wifiInfoPosition, true);
 
     // 업체명 및 부가설명 렌더링
     if (businessName || additionalText) {
+      let currentY = businessTextArea.y;
+      
       if (businessName) {
         const businessTextSize = Math.max(fontSize, canvas.width / 25);
         ctx.fillStyle = template.textColor;
@@ -374,22 +427,24 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         const textX = textPosition?.align === 'left' ? businessTextArea.x : 
                      textPosition?.align === 'right' ? businessTextArea.x + businessTextArea.width :
                      businessTextArea.x + businessTextArea.width / 2;
-        const textY = businessTextArea.y;
 
         // Add text background for better readability
         const textMetrics = ctx.measureText(businessName);
         const textWidth = textMetrics.width;
         const textHeight = businessTextSize;
 
-        const bgX = textPosition?.align === 'left' ? textX - 12 :
-                   textPosition?.align === 'right' ? textX - textWidth - 12 :
-                   textX - textWidth / 2 - 12;
+        const bgPadding = spacing.small;
+        const bgX = textPosition?.align === 'left' ? textX - bgPadding :
+                   textPosition?.align === 'right' ? textX - textWidth - bgPadding :
+                   textX - textWidth / 2 - bgPadding;
 
         ctx.fillStyle = template.backgroundColor + 'DD';
-        ctx.fillRect(bgX, textY - 8, textWidth + 24, textHeight + 16);
+        ctx.fillRect(bgX, currentY - bgPadding, textWidth + bgPadding * 2, textHeight + bgPadding * 2);
 
         ctx.fillStyle = template.textColor;
-        ctx.fillText(businessName, textX, textY);
+        ctx.fillText(businessName, textX, currentY);
+        
+        currentY += textHeight + spacing.medium;
       }
 
       if (additionalText) {
@@ -402,21 +457,21 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         const textX = textPosition?.align === 'left' ? businessTextArea.x : 
                      textPosition?.align === 'right' ? businessTextArea.x + businessTextArea.width :
                      businessTextArea.x + businessTextArea.width / 2;
-        const textY = businessTextArea.y + (businessName ? 40 : 0);
 
         const textMetrics = ctx.measureText(additionalText);
         const textWidth = textMetrics.width;
         const textHeight = additionalTextSize;
 
-        const bgX = textPosition?.align === 'left' ? textX - 8 :
-                   textPosition?.align === 'right' ? textX - textWidth - 8 :
-                   textX - textWidth / 2 - 8;
+        const bgPadding = spacing.small * 0.8;
+        const bgX = textPosition?.align === 'left' ? textX - bgPadding :
+                   textPosition?.align === 'right' ? textX - textWidth - bgPadding :
+                   textX - textWidth / 2 - bgPadding;
 
         ctx.fillStyle = template.backgroundColor + 'DD';
-        ctx.fillRect(bgX, textY - 6, textWidth + 16, textHeight + 12);
+        ctx.fillRect(bgX, currentY - bgPadding, textWidth + bgPadding * 2, textHeight + bgPadding * 2);
 
         ctx.fillStyle = template.accentColor;
-        ctx.fillText(additionalText, textX, textY);
+        ctx.fillText(additionalText, textX, currentY);
       }
     }
 
@@ -437,28 +492,29 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       ctx.fillStyle = template.textColor;
       const ssidMetrics = ctx.measureText(ssidText);
       
-      const ssidBgX = wifiInfoPosition?.align === 'left' ? textX - 6 :
-                     wifiInfoPosition?.align === 'right' ? textX - ssidMetrics.width - 6 :
-                     textX - ssidMetrics.width / 2 - 6;
+      const bgPadding = spacing.small;
+      const ssidBgX = wifiInfoPosition?.align === 'left' ? textX - bgPadding :
+                     wifiInfoPosition?.align === 'right' ? textX - ssidMetrics.width - bgPadding :
+                     textX - ssidMetrics.width / 2 - bgPadding;
       
       ctx.fillStyle = template.backgroundColor + 'DD';
-      ctx.fillRect(ssidBgX, currentY - 4, ssidMetrics.width + 12, wifiTextSize + 8);
+      ctx.fillRect(ssidBgX, currentY - bgPadding, ssidMetrics.width + bgPadding * 2, wifiTextSize + bgPadding * 2);
       
       ctx.fillStyle = template.textColor;
       ctx.fillText(ssidText, textX, currentY);
-      currentY += wifiTextSize + 12;
+      currentY += wifiTextSize + spacing.medium;
 
       // 비밀번호 표시 (보안이 설정된 경우만)
       if (wifiConfig.security !== 'nopass' && wifiConfig.password) {
         const passwordText = `Password: ${wifiConfig.password}`;
         const passwordMetrics = ctx.measureText(passwordText);
         
-        const passwordBgX = wifiInfoPosition?.align === 'left' ? textX - 6 :
-                           wifiInfoPosition?.align === 'right' ? textX - passwordMetrics.width - 6 :
-                           textX - passwordMetrics.width / 2 - 6;
+        const passwordBgX = wifiInfoPosition?.align === 'left' ? textX - bgPadding :
+                           wifiInfoPosition?.align === 'right' ? textX - passwordMetrics.width - bgPadding :
+                           textX - passwordMetrics.width / 2 - bgPadding;
         
         ctx.fillStyle = template.backgroundColor + 'DD';
-        ctx.fillRect(passwordBgX, currentY - 4, passwordMetrics.width + 12, wifiTextSize + 8);
+        ctx.fillRect(passwordBgX, currentY - bgPadding, passwordMetrics.width + bgPadding * 2, wifiTextSize + bgPadding * 2);
         
         ctx.fillStyle = template.textColor;
         ctx.fillText(passwordText, textX, currentY);

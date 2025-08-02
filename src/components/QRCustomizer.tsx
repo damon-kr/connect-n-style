@@ -38,16 +38,22 @@ interface QRCustomizerProps {
 }
 
 const fonts = [
+  // 한글 폰트 (우선순위)
+  { id: 'noto-sans-kr', name: 'Noto Sans KR (깔끔한 고딕)', fontFamily: '"Noto Sans KR", sans-serif' },
+  { id: 'nanum-gothic', name: '나눔고딕 (전통적)', fontFamily: '"Nanum Gothic", sans-serif' },
+  { id: 'nanum-myeongjo', name: '나눔명조 (세리프)', fontFamily: '"Nanum Myeongjo", serif' },
+  { id: 'black-han-sans', name: '블랙한산스 (강렬함)', fontFamily: '"Black Han Sans", sans-serif' },
+  { id: 'jua', name: '주아체 (친근함)', fontFamily: 'Jua, sans-serif' },
+  { id: 'stylish', name: '스타일리시 (세련됨)', fontFamily: 'Stylish, sans-serif' },
+  { id: 'gamja-flower', name: '감자꽃 (손글씨)', fontFamily: '"Gamja Flower", cursive' },
+  { id: 'gaegu', name: '개구 (캐주얼)', fontFamily: 'Gaegu, cursive' },
+  { id: 'do-hyeon', name: '도현체 (모던)', fontFamily: '"Do Hyeon", sans-serif' },
+  { id: 'sunflower', name: '해바라기 (부드러움)', fontFamily: 'Sunflower, sans-serif' },
+  // 영문 폰트
   { id: 'inter', name: 'Inter (기본)', fontFamily: 'Inter, sans-serif' },
-  { id: 'noto-sans-kr', name: 'Noto Sans KR', fontFamily: '"Noto Sans KR", sans-serif' },
-  { id: 'pretendard', name: 'Pretendard', fontFamily: 'Pretendard, sans-serif' },
-  { id: 'nanum-gothic', name: '나눔고딕', fontFamily: '"Nanum Gothic", sans-serif' },
-  { id: 'malgun-gothic', name: '맑은 고딕', fontFamily: '"Malgun Gothic", sans-serif' },
-  { id: 'gulim', name: '굴림', fontFamily: 'Gulim, sans-serif' },
   { id: 'roboto', name: 'Roboto', fontFamily: 'Roboto, sans-serif' },
   { id: 'open-sans', name: 'Open Sans', fontFamily: '"Open Sans", sans-serif' },
   { id: 'lato', name: 'Lato', fontFamily: 'Lato, sans-serif' },
-  { id: 'source-sans-pro', name: 'Source Sans Pro', fontFamily: '"Source Sans Pro", sans-serif' },
   { id: 'montserrat', name: 'Montserrat', fontFamily: 'Montserrat, sans-serif' },
   { id: 'poppins', name: 'Poppins', fontFamily: 'Poppins, sans-serif' },
   { id: 'playfair', name: 'Playfair Display', fontFamily: '"Playfair Display", serif' },

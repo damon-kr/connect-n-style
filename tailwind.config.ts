@@ -18,6 +18,18 @@ export default {
 			}
 		},
 		extend: {
+			fontFamily: {
+				'noto-sans-kr': ['"Noto Sans KR"', 'sans-serif'],
+				'nanum-gothic': ['"Nanum Gothic"', 'sans-serif'],
+				'nanum-myeongjo': ['"Nanum Myeongjo"', 'serif'],
+				'black-han-sans': ['"Black Han Sans"', 'sans-serif'],
+				'jua': ['Jua', 'sans-serif'],
+				'stylish': ['Stylish', 'sans-serif'],
+				'gamja-flower': ['"Gamja Flower"', 'cursive'],
+				'gaegu': ['Gaegu', 'cursive'],
+				'do-hyeon': ['"Do Hyeon"', 'sans-serif'],
+				'sunflower': ['Sunflower', 'sans-serif'],
+			},
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
