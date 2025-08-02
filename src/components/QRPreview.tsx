@@ -24,11 +24,13 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const [isGenerating, setIsGenerating] = useState(false);
   const [businessName, setBusinessName] = useState('');
   const [additionalText, setAdditionalText] = useState('');
-  const [selectedFont, setSelectedFont] = useState('inter');
+  const [businessFont, setBusinessFont] = useState('inter');
   const [textPosition, setTextPosition] = useState<TextPosition | null>(textPositions[0]);
   const [fontSize, setFontSize] = useState(18);
   const [fontWeight, setFontWeight] = useState<'normal' | 'bold'>('bold');
   const [showWifiInfo, setShowWifiInfo] = useState(false);
+  const [wifiInfoFont, setWifiInfoFont] = useState('inter');
+  const [wifiInfoPosition, setWifiInfoPosition] = useState<TextPosition | null>(textPositions[1]);
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
   const [pendingAction, setPendingAction] = useState<'download' | 'export' | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -116,7 +118,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           ctx.shadowOffsetY = 0;
           
           // Add text based on layout and position settings
-          renderText(ctx, canvas, template, qrPosition, qrSize, businessName, additionalText, selectedFont, fontSize, fontWeight, textPosition, config, showWifiInfo);
+          renderText(ctx, canvas, template, qrPosition, qrSize, businessName, additionalText, businessFont, fontSize, fontWeight, textPosition, config, showWifiInfo, wifiInfoFont, wifiInfoPosition);
           
           resolve();
         } catch (error) {
@@ -281,14 +283,26 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     qrSize: number,
     businessName: string,
     additionalText: string,
-    selectedFont: string,
+    businessFont: string,
     fontSize: number,
     fontWeight: 'normal' | 'bold',
     textPosition: any,
     wifiConfig: WiFiConfig,
-    showWifiInfo: boolean
+    showWifiInfo: boolean,
+    wifiInfoFont: string,
+    wifiInfoPosition: any
   ) => {
-    const getTextArea = () => {
+    const getTextArea = (position: any) => {
+      if (position) {
+        return {
+          x: canvas.width * position.x - 100,
+          y: canvas.height * position.y - 20,
+          width: 200,
+          height: 100
+        };
+      }
+      
+      // 기본 레이아웃 기반 위치
       switch (template.layout) {
         case 'top':
         case 'top_heavy':
@@ -345,68 +359,90 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       }
     };
 
-    const textArea = getTextArea();
+    const businessTextArea = getTextArea(textPosition);
+    const wifiTextArea = getTextArea(wifiInfoPosition);
 
-    if (businessName) {
-      const businessTextSize = Math.max(fontSize, canvas.width / 25);
-      ctx.fillStyle = template.textColor;
-      ctx.font = `${fontWeight} ${businessTextSize}px ${selectedFont}`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
+    // 업체명 및 부가설명 렌더링
+    if (businessName || additionalText) {
+      if (businessName) {
+        const businessTextSize = Math.max(fontSize, canvas.width / 25);
+        ctx.fillStyle = template.textColor;
+        ctx.font = `${fontWeight} ${businessTextSize}px ${businessFont}`;
+        ctx.textAlign = textPosition?.align || 'center';
+        ctx.textBaseline = 'top';
 
-      const textX = textArea.x + textArea.width / 2;
-      const textY = textArea.y;
+        const textX = textPosition?.align === 'left' ? businessTextArea.x : 
+                     textPosition?.align === 'right' ? businessTextArea.x + businessTextArea.width :
+                     businessTextArea.x + businessTextArea.width / 2;
+        const textY = businessTextArea.y;
 
-      // Add text background for better readability
-      const textMetrics = ctx.measureText(businessName);
-      const textWidth = textMetrics.width;
-      const textHeight = businessTextSize;
+        // Add text background for better readability
+        const textMetrics = ctx.measureText(businessName);
+        const textWidth = textMetrics.width;
+        const textHeight = businessTextSize;
 
-      ctx.fillStyle = template.backgroundColor + 'DD';
-      ctx.fillRect(textX - textWidth / 2 - 12, textY - 8, textWidth + 24, textHeight + 16);
+        const bgX = textPosition?.align === 'left' ? textX - 12 :
+                   textPosition?.align === 'right' ? textX - textWidth - 12 :
+                   textX - textWidth / 2 - 12;
 
-      ctx.fillStyle = template.textColor;
-      ctx.fillText(businessName, textX, textY);
-    }
+        ctx.fillStyle = template.backgroundColor + 'DD';
+        ctx.fillRect(bgX, textY - 8, textWidth + 24, textHeight + 16);
 
-    if (additionalText) {
-      const additionalTextSize = Math.max(fontSize - 4, canvas.width / 30);
-      ctx.fillStyle = template.accentColor;
-      ctx.font = `${fontWeight === 'bold' ? 'normal' : fontWeight} ${additionalTextSize}px ${selectedFont}`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
+        ctx.fillStyle = template.textColor;
+        ctx.fillText(businessName, textX, textY);
+      }
 
-      const textX = textArea.x + textArea.width / 2;
-      const textY = textArea.y + (businessName ? 40 : 0);
+      if (additionalText) {
+        const additionalTextSize = Math.max(fontSize - 4, canvas.width / 30);
+        ctx.fillStyle = template.accentColor;
+        ctx.font = `${fontWeight === 'bold' ? 'normal' : fontWeight} ${additionalTextSize}px ${businessFont}`;
+        ctx.textAlign = textPosition?.align || 'center';
+        ctx.textBaseline = 'top';
 
-      const textMetrics = ctx.measureText(additionalText);
-      const textWidth = textMetrics.width;
-      const textHeight = additionalTextSize;
+        const textX = textPosition?.align === 'left' ? businessTextArea.x : 
+                     textPosition?.align === 'right' ? businessTextArea.x + businessTextArea.width :
+                     businessTextArea.x + businessTextArea.width / 2;
+        const textY = businessTextArea.y + (businessName ? 40 : 0);
 
-      ctx.fillStyle = template.backgroundColor + 'DD';
-      ctx.fillRect(textX - textWidth / 2 - 8, textY - 6, textWidth + 16, textHeight + 12);
+        const textMetrics = ctx.measureText(additionalText);
+        const textWidth = textMetrics.width;
+        const textHeight = additionalTextSize;
 
-      ctx.fillStyle = template.accentColor;
-      ctx.fillText(additionalText, textX, textY);
+        const bgX = textPosition?.align === 'left' ? textX - 8 :
+                   textPosition?.align === 'right' ? textX - textWidth - 8 :
+                   textX - textWidth / 2 - 8;
+
+        ctx.fillStyle = template.backgroundColor + 'DD';
+        ctx.fillRect(bgX, textY - 6, textWidth + 16, textHeight + 12);
+
+        ctx.fillStyle = template.accentColor;
+        ctx.fillText(additionalText, textX, textY);
+      }
     }
 
     // WiFi 정보 표시
     if (showWifiInfo) {
       const wifiTextSize = Math.max(fontSize - 6, canvas.width / 35);
-      ctx.font = `normal ${wifiTextSize}px ${selectedFont}`;
-      ctx.textAlign = 'center';
+      ctx.font = `normal ${wifiTextSize}px ${wifiInfoFont}`;
+      ctx.textAlign = wifiInfoPosition?.align || 'center';
       ctx.textBaseline = 'top';
 
-      const textX = textArea.x + textArea.width / 2;
-      let currentY = textArea.y + (businessName ? 40 : 0) + (additionalText ? 35 : 0);
+      const textX = wifiInfoPosition?.align === 'left' ? wifiTextArea.x : 
+                   wifiInfoPosition?.align === 'right' ? wifiTextArea.x + wifiTextArea.width :
+                   wifiTextArea.x + wifiTextArea.width / 2;
+      let currentY = wifiTextArea.y;
 
       // 네트워크 이름 표시
       const ssidText = `WiFi: ${wifiConfig.ssid}`;
       ctx.fillStyle = template.textColor;
       const ssidMetrics = ctx.measureText(ssidText);
       
+      const ssidBgX = wifiInfoPosition?.align === 'left' ? textX - 6 :
+                     wifiInfoPosition?.align === 'right' ? textX - ssidMetrics.width - 6 :
+                     textX - ssidMetrics.width / 2 - 6;
+      
       ctx.fillStyle = template.backgroundColor + 'DD';
-      ctx.fillRect(textX - ssidMetrics.width / 2 - 6, currentY - 4, ssidMetrics.width + 12, wifiTextSize + 8);
+      ctx.fillRect(ssidBgX, currentY - 4, ssidMetrics.width + 12, wifiTextSize + 8);
       
       ctx.fillStyle = template.textColor;
       ctx.fillText(ssidText, textX, currentY);
@@ -417,8 +453,12 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         const passwordText = `Password: ${wifiConfig.password}`;
         const passwordMetrics = ctx.measureText(passwordText);
         
+        const passwordBgX = wifiInfoPosition?.align === 'left' ? textX - 6 :
+                           wifiInfoPosition?.align === 'right' ? textX - passwordMetrics.width - 6 :
+                           textX - passwordMetrics.width / 2 - 6;
+        
         ctx.fillStyle = template.backgroundColor + 'DD';
-        ctx.fillRect(textX - passwordMetrics.width / 2 - 6, currentY - 4, passwordMetrics.width + 12, wifiTextSize + 8);
+        ctx.fillRect(passwordBgX, currentY - 4, passwordMetrics.width + 12, wifiTextSize + 8);
         
         ctx.fillStyle = template.textColor;
         ctx.fillText(passwordText, textX, currentY);
@@ -448,7 +488,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
   useEffect(() => {
     generateQR();
-  }, [config, template, printSize, businessName, additionalText, selectedFont, textPosition, fontSize, fontWeight, showWifiInfo]);
+  }, [config, template, printSize, businessName, additionalText, businessFont, textPosition, fontSize, fontWeight, showWifiInfo, wifiInfoFont, wifiInfoPosition]);
 
   const handleDownload = () => {
     setPendingAction('download');
@@ -501,22 +541,26 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
   return (
     <div className="space-y-4">
-      <QRCustomizer 
-        businessName={businessName}
-        onBusinessNameChange={setBusinessName}
-        additionalText={additionalText}
-        onAdditionalTextChange={setAdditionalText}
-        selectedFont={selectedFont}
-        onFontChange={setSelectedFont}
-        textPosition={textPosition}
-        onTextPositionChange={setTextPosition}
-        fontSize={fontSize}
-        onFontSizeChange={setFontSize}
-        fontWeight={fontWeight}
-        onFontWeightChange={setFontWeight}
-        showWifiInfo={showWifiInfo}
-        onShowWifiInfoChange={setShowWifiInfo}
-      />
+                <QRCustomizer 
+                  businessName={businessName}
+                  onBusinessNameChange={setBusinessName}
+                  additionalText={additionalText}
+                  onAdditionalTextChange={setAdditionalText}
+                  businessFont={businessFont}
+                  onBusinessFontChange={setBusinessFont}
+                  textPosition={textPosition}
+                  onTextPositionChange={setTextPosition}
+                  fontSize={fontSize}
+                  onFontSizeChange={setFontSize}
+                  fontWeight={fontWeight}
+                  onFontWeightChange={setFontWeight}
+                  showWifiInfo={showWifiInfo}
+                  onShowWifiInfoChange={setShowWifiInfo}
+                  wifiInfoFont={wifiInfoFont}
+                  onWifiInfoFontChange={setWifiInfoFont}
+                  wifiInfoPosition={wifiInfoPosition}
+                  onWifiInfoPositionChange={setWifiInfoPosition}
+                />
 
       <Card>
         <CardHeader>
