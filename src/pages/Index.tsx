@@ -118,82 +118,89 @@ const Index = () => {
       {/* Main Content */}
       <section className="pb-12 px-4">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Step 1: Print Size Selection */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
-                  1
+          <div className="flex flex-col xl:flex-row gap-8">
+            {/* Left Content - Steps */}
+            <div className="flex-1 max-w-4xl">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {/* Step 1: Print Size Selection */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                      1
+                    </div>
+                    <h2 className="text-xl font-semibold">인쇄 크기</h2>
+                  </div>
+                  
+                  <PrintSizeSelector 
+                    selectedSize={selectedSize}
+                    selectedOrientation={selectedOrientation}
+                    onSizeSelect={setSelectedSize}
+                    onOrientationSelect={setSelectedOrientation}
+                  />
                 </div>
-                <h2 className="text-xl font-semibold">인쇄 크기</h2>
+
+                {/* Step 2: WiFi Configuration */}
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                      2
+                    </div>
+                    <h2 className="text-xl font-semibold">WiFi 정보</h2>
+                  </div>
+                  
+                  <WiFiForm 
+                    config={wifiConfig} 
+                    onConfigChange={setWifiConfig} 
+                  />
+                </div>
+
+                {/* Step 3: Template Selection */}
+                <div className="space-y-6 md:col-span-2 lg:col-span-1">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                      3
+                    </div>
+                    <h2 className="text-xl font-semibold">디자인 선택</h2>
+                  </div>
+                  
+                  {selectedSize && (
+                    <TemplateSelector 
+                      selectedTemplate={selectedTemplate}
+                      onTemplateSelect={setSelectedTemplate}
+                      printSize={selectedSize}
+                    />
+                  )}
+                  
+                  {!selectedSize && (
+                    <div className="text-center text-muted-foreground py-8">
+                      먼저 인쇄 크기를 선택해주세요
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              <PrintSizeSelector 
-                selectedSize={selectedSize}
-                selectedOrientation={selectedOrientation}
-                onSizeSelect={setSelectedSize}
-                onOrientationSelect={setSelectedOrientation}
-              />
             </div>
 
-            {/* Step 2: WiFi Configuration */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
-                  2
+            {/* Right Sidebar - Fixed Preview */}
+            <div className="xl:w-80 xl:shrink-0">
+              <div className="xl:sticky xl:top-24 space-y-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+                    4
+                  </div>
+                  <h2 className="text-xl font-semibold">다운로드</h2>
                 </div>
-                <h2 className="text-xl font-semibold">WiFi 정보</h2>
-              </div>
-              
-              <WiFiForm 
-                config={wifiConfig} 
-                onConfigChange={setWifiConfig} 
-              />
-            </div>
-
-            {/* Step 3: Template Selection */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
-                  3
-                </div>
-                <h2 className="text-xl font-semibold">디자인 선택</h2>
-              </div>
-              
-              {selectedSize && (
-                <TemplateSelector 
-                  selectedTemplate={selectedTemplate}
-                  onTemplateSelect={setSelectedTemplate}
+                
+                {/* 사이드바 광고 */}
+                <AdBanner position="sidebar" className="mb-4" />
+                
+                <QRPreview 
+                  config={wifiConfig}
+                  template={selectedTemplate}
                   printSize={selectedSize}
+                  onDownload={handleDownload}
+                  onShare={handleShare}
                 />
-              )}
-              
-              {!selectedSize && (
-                <div className="text-center text-muted-foreground py-8">
-                  먼저 인쇄 크기를 선택해주세요
-                </div>
-              )}
-            </div>
-
-            {/* Step 4: Preview & Download */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
-                  4
-                </div>
-                <h2 className="text-xl font-semibold">다운로드</h2>
               </div>
-              
-              {/* 사이드바 광고 */}
-              <AdBanner position="sidebar" className="mb-4" />
-              
-              <QRPreview 
-                config={wifiConfig}
-                template={selectedTemplate}
-                printSize={selectedSize}
-                onDownload={handleDownload}
-                onShare={handleShare}
-              />
             </div>
           </div>
         </div>
