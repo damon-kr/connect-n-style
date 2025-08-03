@@ -404,6 +404,11 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     setShowAdInterstitial(true);
   };
 
+  // 설정이 변경될 때마다 QR 생성 상태 리셋
+  useEffect(() => {
+    setIsQRGenerated(false);
+  }, [config, template, printSize, businessName, additionalText, businessFont, textPosition, fontSize, fontWeight, showWifiInfo, wifiInfoFont, wifiInfoPosition]);
+
   const handleDownload = () => {
     setPendingAction('download');
     setShowAdInterstitial(true);
