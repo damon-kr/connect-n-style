@@ -3,11 +3,13 @@ import { WiFiConfig, QRTemplate } from '@/types/wifi';
 import { PrintSize } from '@/types/size';
 import { generateQRCode } from '@/lib/qrGenerator';
 import { QRCustomizer } from '@/components/QRCustomizer';
+import { DraggableQRCanvas } from '@/components/DraggableQRCanvas';
 import { TextPosition, textPositions } from '@/components/TextPositionSelector';
 import { AdInterstitial } from '@/components/AdInterstitial';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Share2, Eye, FileImage, FileText } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Download, Share2, Eye, FileImage, FileText, Move } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 
@@ -24,6 +26,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const [isGenerating, setIsGenerating] = useState(false);
   const [businessName, setBusinessName] = useState('');
   const [additionalText, setAdditionalText] = useState('');
+  const [otherText, setOtherText] = useState('');
   const [businessFont, setBusinessFont] = useState('inter');
   const [textPosition, setTextPosition] = useState<TextPosition | null>(textPositions[0]);
   const [fontSize, setFontSize] = useState(18);
@@ -118,7 +121,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
           
-          // Add text based on layout and position settings
+           // Add text based on layout and position settings
           renderText(ctx, canvas, template, qrPosition, qrSize, businessName, additionalText, businessFont, fontSize, fontWeight, textPosition, config, showWifiInfo, wifiInfoFont, wifiInfoPosition);
           
           resolve();
@@ -354,9 +357,19 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
     // QR 코드는 이미 중앙에 배치됨 (파란색 영역)
 
-    // 3. WiFi 정보 (초록색 영역 - 하단)
+    // 3. 기타 문구 (QR 하단)
+    if (otherText) {
+      const otherFontSize = isLandscape ? baseSize * 0.04 : baseSize * 0.035;
+      ctx.font = `normal ${otherFontSize}px ${getFontFamily(businessFont)}`;
+      const otherY = qrPosition.y + qrSize + margins.between + otherFontSize;
+      ctx.fillText(otherText, canvas.width / 2, otherY);
+    }
+
+    // 4. WiFi 정보 (기타 문구 아래)
     if (showWifiInfo && wifiConfig.ssid) {
-      const wifiY = qrPosition.y + qrSize + margins.between;
+      const baseY = qrPosition.y + qrSize + margins.between;
+      const otherTextOffset = otherText ? margins.between * 1.5 : 0;
+      const wifiY = baseY + otherTextOffset;
       const wifiFontSize = isLandscape ? baseSize * 0.035 : baseSize * 0.03;
       
       ctx.font = `normal ${wifiFontSize}px ${getFontFamily(wifiInfoFont)}`;
@@ -407,7 +420,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   // 설정이 변경될 때마다 QR 생성 상태 리셋
   useEffect(() => {
     setIsQRGenerated(false);
-  }, [config, template, printSize, businessName, additionalText, businessFont, textPosition, fontSize, fontWeight, showWifiInfo, wifiInfoFont, wifiInfoPosition]);
+  }, [config, template, printSize, businessName, additionalText, otherText, businessFont, textPosition, fontSize, fontWeight, showWifiInfo, wifiInfoFont, wifiInfoPosition]);
 
   const handleDownload = () => {
     setPendingAction('download');
@@ -472,6 +485,8 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                   onBusinessNameChange={setBusinessName}
                   additionalText={additionalText}
                   onAdditionalTextChange={setAdditionalText}
+                  otherText={otherText}
+                  onOtherTextChange={setOtherText}
                   businessFont={businessFont}
                   onBusinessFontChange={setBusinessFont}
                   textPosition={textPosition}
@@ -488,7 +503,17 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                   onWifiInfoPositionChange={setWifiInfoPosition}
                 />
 
-      <Card>
+      <Tabs defaultValue="preview" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="preview">기본 미리보기</TabsTrigger>
+          <TabsTrigger value="dragdrop">
+            <Move size={16} className="mr-2" />
+            드래그 편집
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="preview" className="mt-4">
+          <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Eye size={20} className="text-primary" />
@@ -552,6 +577,21 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           </div>
         </CardContent>
       </Card>
+        </TabsContent>
+        
+        <TabsContent value="dragdrop" className="mt-4">
+          <DraggableQRCanvas
+            businessName={businessName}
+            additionalText={additionalText}
+            otherText={otherText}
+            showWifiInfo={showWifiInfo}
+            wifiConfig={config}
+            qrImageUrl={qrImage || undefined}
+            canvasWidth={printSize?.width || 400}
+            canvasHeight={printSize?.height || 400}
+          />
+        </TabsContent>
+      </Tabs>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Button 

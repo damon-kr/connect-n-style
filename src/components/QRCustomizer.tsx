@@ -21,6 +21,8 @@ interface QRCustomizerProps {
   onBusinessNameChange: (name: string) => void;
   additionalText: string;
   onAdditionalTextChange: (text: string) => void;
+  otherText: string;
+  onOtherTextChange: (text: string) => void;
   businessFont: string;
   onBusinessFontChange: (font: string) => void;
   textPosition: TextPosition | null;
@@ -65,7 +67,9 @@ export const QRCustomizer = ({
   businessName, 
   onBusinessNameChange, 
   additionalText, 
-  onAdditionalTextChange, 
+  onAdditionalTextChange,
+  otherText,
+  onOtherTextChange,
   businessFont, 
   onBusinessFontChange,
   textPosition,
@@ -116,6 +120,16 @@ export const QRCustomizer = ({
                     placeholder="예: Free WiFi Available"
                     value={additionalText}
                     onChange={(e) => onAdditionalTextChange(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="otherText">기타 문구</Label>
+                  <Input
+                    id="otherText"
+                    placeholder="예: 스캔하여 WiFi 연결"
+                    value={otherText}
+                    onChange={(e) => onOtherTextChange(e.target.value)}
                   />
                 </div>
                 
