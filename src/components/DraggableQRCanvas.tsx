@@ -256,42 +256,45 @@ export const DraggableQRCanvas = ({
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Eye size={20} className="text-primary" />
-            드래그 앤 드롭 미리보기
+            <Move size={18} className="text-primary" />
+            <span className="text-lg">위치 및 크기 조정</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={resetLayout}
-              className="flex items-center gap-1"
-            >
-              <RotateCcw size={14} />
-              초기화
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={resetLayout}
+            className="flex items-center gap-1"
+          >
+            <RotateCcw size={14} />
+            초기화
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {/* 안내 메시지 */}
-          <div className="flex items-center gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg">
-            <Move size={16} />
-            <span className="text-sm">
-              각 요소를 클릭하고 드래그해서 위치를 조정하세요. 우하단 핸들을 드래그해서 크기를 조정할 수 있습니다.
-            </span>
+          <div className="flex items-start gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg">
+            <Settings size={16} className="mt-0.5 flex-shrink-0" />
+            <div className="text-sm space-y-1">
+              <p className="font-medium">편집 방법:</p>
+              <ul className="space-y-1 text-xs">
+                <li>• 요소를 클릭하고 드래그하여 위치 이동</li>
+                <li>• 모서리 핸들을 드래그하여 크기 조정</li>
+                <li>• 가장자리 핸들로 세밀한 크기 조정</li>
+              </ul>
+            </div>
           </div>
 
           {/* 드래그 앤 드롭 캔버스 */}
           <div
             ref={containerRef}
-            className="relative bg-white border-2 border-dashed border-gray-300 rounded-lg overflow-hidden mx-auto"
+            className="relative bg-white border border-gray-200 rounded-lg overflow-hidden mx-auto shadow-sm"
             style={{
-              width: Math.min(canvasWidth, 500),
-              height: Math.min(canvasHeight, 500),
+              width: Math.min(canvasWidth, 600),
+              height: Math.min(canvasHeight, 600),
               aspectRatio: `${canvasWidth}/${canvasHeight}`,
             }}
             onClick={() => setSelectedElement(null)}
@@ -302,15 +305,15 @@ export const DraggableQRCanvas = ({
                   <DraggableElement
                     key={element.id}
                     id={element.id}
-                    x={element.x * (Math.min(canvasWidth, 500) / canvasWidth)}
-                    y={element.y * (Math.min(canvasHeight, 500) / canvasHeight)}
-                    width={element.width * (Math.min(canvasWidth, 500) / canvasWidth)}
-                    height={element.height * (Math.min(canvasHeight, 500) / canvasHeight)}
+                    x={element.x * (Math.min(canvasWidth, 600) / canvasWidth)}
+                    y={element.y * (Math.min(canvasHeight, 600) / canvasHeight)}
+                    width={element.width * (Math.min(canvasWidth, 600) / canvasWidth)}
+                    height={element.height * (Math.min(canvasHeight, 600) / canvasHeight)}
                     onPositionChange={(id, x, y) => 
-                      handlePositionChange(id, x / (Math.min(canvasWidth, 500) / canvasWidth), y / (Math.min(canvasHeight, 500) / canvasHeight))
+                      handlePositionChange(id, x / (Math.min(canvasWidth, 600) / canvasWidth), y / (Math.min(canvasHeight, 600) / canvasHeight))
                     }
                     onSizeChange={(id, width, height) => 
-                      handleSizeChange(id, width / (Math.min(canvasWidth, 500) / canvasWidth), height / (Math.min(canvasHeight, 500) / canvasHeight))
+                      handleSizeChange(id, width / (Math.min(canvasWidth, 600) / canvasWidth), height / (Math.min(canvasHeight, 600) / canvasHeight))
                     }
                     isSelected={selectedElement === element.id}
                     onSelect={setSelectedElement}
@@ -325,20 +328,22 @@ export const DraggableQRCanvas = ({
                           className="w-full h-full object-contain rounded"
                         />
                       ) : (
-                        <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm rounded border-2 border-dashed border-gray-400">
-                          QR 코드
+                        <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs rounded border border-dashed border-gray-300">
+                          QR
                         </div>
                       )
                     ) : (
                       <div
                         className="w-full h-full flex items-center justify-center text-center px-2 py-1 rounded"
                         style={{
-                          fontSize: 'fontSize' in element ? Math.max(10, element.fontSize * 0.8) : 12,
+                          fontSize: 'fontSize' in element ? Math.max(8, element.fontSize * 0.7) : 10,
                           fontFamily: 'fontFamily' in element ? element.fontFamily : 'inherit',
                           fontWeight: 'fontWeight' in element ? element.fontWeight : 'normal',
                           color: 'color' in element ? element.color : '#000000',
-                          backgroundColor: selectedElement === element.id ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255, 255, 255, 0.8)',
-                          border: selectedElement === element.id ? '1px solid #3b82f6' : '1px solid #e5e7eb',
+                          backgroundColor: selectedElement === element.id ? 'rgba(59, 130, 246, 0.1)' : 'rgba(255, 255, 255, 0.9)',
+                          border: selectedElement === element.id ? '2px solid #3b82f6' : '1px solid transparent',
+                          borderRadius: '4px',
+                          transition: 'all 0.2s ease',
                         }}
                       >
                         {'text' in element ? element.text : ''}
@@ -353,10 +358,10 @@ export const DraggableQRCanvas = ({
 
           {/* 선택된 요소 정보 */}
           {selectedElement && (
-            <div className="p-3 bg-gray-50 rounded-lg">
+            <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
               <div className="flex items-center gap-2 mb-2">
                 <Settings size={16} className="text-primary" />
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium text-primary">
                   선택된 요소: {(() => {
                     const element = elements.find(el => el.id === selectedElement);
                     if (!element) return selectedElement;
@@ -372,11 +377,17 @@ export const DraggableQRCanvas = ({
                   })()}
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-                <span>위치: X: {Math.round(elements.find(el => el.id === selectedElement)?.x || 0)}px</span>
-                <span>Y: {Math.round(elements.find(el => el.id === selectedElement)?.y || 0)}px</span>
-                <span>크기: W: {Math.round(elements.find(el => el.id === selectedElement)?.width || 0)}px</span>
-                <span>H: {Math.round(elements.find(el => el.id === selectedElement)?.height || 0)}px</span>
+              <div className="grid grid-cols-2 gap-3 text-xs">
+                <div className="space-y-1">
+                  <div className="text-muted-foreground">위치</div>
+                  <div className="font-mono">X: {Math.round(elements.find(el => el.id === selectedElement)?.x || 0)}px</div>
+                  <div className="font-mono">Y: {Math.round(elements.find(el => el.id === selectedElement)?.y || 0)}px</div>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-muted-foreground">크기</div>
+                  <div className="font-mono">W: {Math.round(elements.find(el => el.id === selectedElement)?.width || 0)}px</div>
+                  <div className="font-mono">H: {Math.round(elements.find(el => el.id === selectedElement)?.height || 0)}px</div>
+                </div>
               </div>
             </div>
           )}

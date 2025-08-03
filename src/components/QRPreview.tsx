@@ -480,40 +480,30 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
   return (
     <div className="space-y-4">
-                <QRCustomizer 
-                  businessName={businessName}
-                  onBusinessNameChange={setBusinessName}
-                  additionalText={additionalText}
-                  onAdditionalTextChange={setAdditionalText}
-                  otherText={otherText}
-                  onOtherTextChange={setOtherText}
-                  businessFont={businessFont}
-                  onBusinessFontChange={setBusinessFont}
-                  textPosition={textPosition}
-                  onTextPositionChange={setTextPosition}
-                  fontSize={fontSize}
-                  onFontSizeChange={setFontSize}
-                  fontWeight={fontWeight}
-                  onFontWeightChange={setFontWeight}
-                  showWifiInfo={showWifiInfo}
-                  onShowWifiInfoChange={setShowWifiInfo}
-                  wifiInfoFont={wifiInfoFont}
-                  onWifiInfoFontChange={setWifiInfoFont}
-                  wifiInfoPosition={wifiInfoPosition}
-                  onWifiInfoPositionChange={setWifiInfoPosition}
-                />
+      <QRCustomizer 
+        businessName={businessName}
+        onBusinessNameChange={setBusinessName}
+        additionalText={additionalText}
+        onAdditionalTextChange={setAdditionalText}
+        otherText={otherText}
+        onOtherTextChange={setOtherText}
+        businessFont={businessFont}
+        onBusinessFontChange={setBusinessFont}
+        textPosition={textPosition}
+        onTextPositionChange={setTextPosition}
+        fontSize={fontSize}
+        onFontSizeChange={setFontSize}
+        fontWeight={fontWeight}
+        onFontWeightChange={setFontWeight}
+        showWifiInfo={showWifiInfo}
+        onShowWifiInfoChange={setShowWifiInfo}
+        wifiInfoFont={wifiInfoFont}
+        onWifiInfoFontChange={setWifiInfoFont}
+        wifiInfoPosition={wifiInfoPosition}
+        onWifiInfoPositionChange={setWifiInfoPosition}
+      />
 
-      <Tabs defaultValue="preview" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="preview">기본 미리보기</TabsTrigger>
-          <TabsTrigger value="dragdrop">
-            <Move size={16} className="mr-2" />
-            드래그 편집
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="preview" className="mt-4">
-          <Card>
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Eye size={20} className="text-primary" />
@@ -577,21 +567,20 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           </div>
         </CardContent>
       </Card>
-        </TabsContent>
-        
-        <TabsContent value="dragdrop" className="mt-4">
-          <DraggableQRCanvas
-            businessName={businessName}
-            additionalText={additionalText}
-            otherText={otherText}
-            showWifiInfo={showWifiInfo}
-            wifiConfig={config}
-            qrImageUrl={qrImage || undefined}
-            canvasWidth={printSize?.width || 400}
-            canvasHeight={printSize?.height || 400}
-          />
-        </TabsContent>
-      </Tabs>
+
+      {/* 드래그 편집 컴포넌트 - QR 코드가 생성된 후에만 표시 */}
+      {qrImage && (
+        <DraggableQRCanvas
+          businessName={businessName}
+          additionalText={additionalText}
+          otherText={otherText}
+          showWifiInfo={showWifiInfo}
+          wifiConfig={config}
+          qrImageUrl={qrImage}
+          canvasWidth={printSize?.width || 400}
+          canvasHeight={printSize?.height || 400}
+        />
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Button 
