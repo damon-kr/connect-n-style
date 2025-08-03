@@ -232,45 +232,53 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   };
 
   const calculateQRPosition = (canvas: HTMLCanvasElement, qrSize: number, layout: QRTemplate['layout']) => {
+    // 첨부된 이미지 기준으로 QR 위치 조정
+    const baseSize = Math.min(canvas.width, canvas.height);
+    const topMargin = baseSize * 0.25; // 업체명과 부가설명을 위한 여백
+    const bottomMargin = baseSize * 0.15; // WiFi 정보를 위한 여백
+
+    // 모든 레이아웃에서 수직 중앙에 배치 (상하 여백 고려)
+    const centerY = topMargin + (canvas.height - topMargin - bottomMargin - qrSize) / 2;
+
     switch (layout) {
       case 'center':
       case 'vertical_centered':
         return {
           x: (canvas.width - qrSize) / 2,
-          y: (canvas.height - qrSize) / 2
+          y: centerY
         };
       case 'top':
       case 'top_heavy':
         return {
           x: (canvas.width - qrSize) / 2,
-          y: canvas.height * 0.15
+          y: topMargin
         };
       case 'bottom':
       case 'bottom_heavy':
         return {
           x: (canvas.width - qrSize) / 2,
-          y: canvas.height * 0.85 - qrSize
+          y: canvas.height - bottomMargin - qrSize
         };
       case 'split-left':
       case 'horizontal_split':
         return {
           x: canvas.width * 0.15,
-          y: (canvas.height - qrSize) / 2
+          y: centerY
         };
       case 'split-right':
         return {
           x: canvas.width * 0.85 - qrSize,
-          y: (canvas.height - qrSize) / 2
+          y: centerY
         };
       case 'tag_style':
         return {
           x: (canvas.width - qrSize) / 2,
-          y: canvas.height * 0.3
+          y: centerY
         };
       default:
         return {
           x: (canvas.width - qrSize) / 2,
-          y: (canvas.height - qrSize) / 2
+          y: centerY
         };
     }
   };
@@ -292,272 +300,76 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     wifiInfoFont: string,
     wifiInfoPosition: any
   ) => {
-    // 반응형 간격 계산
-    const getSpacing = () => {
-      const baseSpacing = Math.min(canvas.width, canvas.height) * 0.02;
-      return {
-        small: baseSpacing,
-        medium: baseSpacing * 1.5,
-        large: baseSpacing * 2.5,
-        extraLarge: baseSpacing * 4
+    // 첨부된 이미지 기준으로 레이아웃 조정
+    const canvasRatio = canvas.width / canvas.height;
+    const isLandscape = canvasRatio > 1;
+    
+    // 기본 간격 및 크기 설정
+    const baseSize = Math.min(canvas.width, canvas.height);
+    const margins = {
+      top: baseSize * 0.08,
+      side: baseSize * 0.06,
+      between: baseSize * 0.04
+    };
+
+    // 폰트 매핑 (한글 폰트 적용 보장)
+    const getFontFamily = (fontId: string) => {
+      const fontMap: { [key: string]: string } = {
+        'noto-sans-kr': '"Noto Sans KR", sans-serif',
+        'nanum-gothic': '"Nanum Gothic", sans-serif',
+        'nanum-myeongjo': '"Nanum Myeongjo", serif',
+        'black-han-sans': '"Black Han Sans", sans-serif',
+        'jua': 'Jua, sans-serif',
+        'stylish': 'Stylish, sans-serif',
+        'gamja-flower': '"Gamja Flower", cursive',
+        'gaegu': 'Gaegu, cursive',
+        'do-hyeon': '"Do Hyeon", sans-serif',
+        'sunflower': 'Sunflower, sans-serif',
+        'inter': 'Inter, sans-serif',
+        'roboto': 'Roboto, sans-serif'
       };
+      return fontMap[fontId] || '"Noto Sans KR", sans-serif';
     };
 
-    const spacing = getSpacing();
+    // 텍스트 스타일 설정
+    ctx.textAlign = 'center';
+    ctx.fillStyle = template.textColor;
 
-    const getTextArea = (position: any, isWifiInfo: boolean = false) => {
-      // 사용자 정의 위치가 있는 경우
-      if (position) {
-        const areaWidth = canvas.width * 0.6;
-        const areaHeight = canvas.height * 0.3;
-        return {
-          x: canvas.width * position.x - areaWidth / 2,
-          y: canvas.height * position.y - areaHeight / 2,
-          width: areaWidth,
-          height: areaHeight
-        };
-      }
-      
-      // 레이아웃 기반 자동 위치 계산
-      const margin = spacing.medium;
-      
-          // 가로/세로 비율에 따른 레이아웃 자동 조정
-          const isLandscape = canvas.width > canvas.height;
-          const aspectRatio = canvas.width / canvas.height;
-          
-          switch (template.layout) {
-            case 'top':
-            case 'top_heavy':
-              if (isWifiInfo) {
-                return {
-                  x: margin,
-                  y: qrPosition.y + qrSize + (isLandscape ? spacing.medium : spacing.large),
-                  width: canvas.width - margin * 2,
-                  height: canvas.height - (qrPosition.y + qrSize + (isLandscape ? spacing.medium : spacing.large) + margin)
-                };
-              }
-              return {
-                x: margin,
-                y: qrPosition.y + qrSize + spacing.medium,
-                width: canvas.width - margin * 2,
-                height: isLandscape ? spacing.large : spacing.extraLarge
-              };
-              
-            case 'bottom':
-            case 'bottom_heavy':
-              if (isWifiInfo) {
-                return {
-                  x: margin,
-                  y: margin,
-                  width: canvas.width - margin * 2,
-                  height: qrPosition.y - (isLandscape ? spacing.medium : spacing.large) - margin
-                };
-              }
-              return {
-                x: margin,
-                y: qrPosition.y - (isLandscape ? spacing.large : spacing.extraLarge) - spacing.medium,
-                width: canvas.width - margin * 2,
-                height: isLandscape ? spacing.large : spacing.extraLarge
-              };
-              
-            case 'split-left':
-            case 'horizontal_split':
-              // 가로형에 최적화된 레이아웃
-              if (isLandscape && aspectRatio > 1.4) {
-                if (isWifiInfo) {
-                  return {
-                    x: qrPosition.x + qrSize + spacing.large,
-                    y: canvas.height * 0.65,
-                    width: canvas.width - (qrPosition.x + qrSize + spacing.large + margin),
-                    height: canvas.height * 0.25
-                  };
-                }
-                return {
-                  x: qrPosition.x + qrSize + spacing.medium,
-                  y: canvas.height * 0.15,
-                  width: canvas.width - (qrPosition.x + qrSize + spacing.medium + margin),
-                  height: canvas.height * 0.45
-                };
-              } else {
-                // 세로형이거나 비율이 낮은 경우
-                if (isWifiInfo) {
-                  return {
-                    x: margin,
-                    y: qrPosition.y + qrSize + spacing.large,
-                    width: canvas.width - margin * 2,
-                    height: canvas.height - (qrPosition.y + qrSize + spacing.large + margin)
-                  };
-                }
-                return {
-                  x: margin,
-                  y: qrPosition.y + qrSize + spacing.medium,
-                  width: canvas.width - margin * 2,
-                  height: spacing.extraLarge
-                };
-              }
-              
-            case 'split-right':
-              if (isLandscape && aspectRatio > 1.4) {
-                if (isWifiInfo) {
-                  return {
-                    x: margin,
-                    y: canvas.height * 0.65,
-                    width: qrPosition.x - spacing.large - margin,
-                    height: canvas.height * 0.25
-                  };
-                }
-                return {
-                  x: margin,
-                  y: canvas.height * 0.15,
-                  width: qrPosition.x - spacing.medium - margin,
-                  height: canvas.height * 0.45
-                };
-              } else {
-                if (isWifiInfo) {
-                  return {
-                    x: margin,
-                    y: qrPosition.y + qrSize + spacing.large,
-                    width: canvas.width - margin * 2,
-                    height: canvas.height - (qrPosition.y + qrSize + spacing.large + margin)
-                  };
-                }
-                return {
-                  x: margin,
-                  y: qrPosition.y + qrSize + spacing.medium,
-                  width: canvas.width - margin * 2,
-                  height: spacing.extraLarge
-                };
-              }
-              
-            case 'vertical_centered':
-            case 'tag_style':
-            case 'center':
-            default:
-              if (isWifiInfo) {
-                return {
-                  x: margin,
-                  y: qrPosition.y + qrSize + (isLandscape ? spacing.large : spacing.extraLarge) + spacing.medium,
-                  width: canvas.width - margin * 2,
-                  height: canvas.height - (qrPosition.y + qrSize + (isLandscape ? spacing.large : spacing.extraLarge) + spacing.medium + margin)
-                };
-              }
-              return {
-                x: margin,
-                y: qrPosition.y + qrSize + spacing.medium,
-                width: canvas.width - margin * 2,
-                height: isLandscape ? spacing.large : spacing.extraLarge
-              };
-          }
-    };
-
-    const businessTextArea = getTextArea(textPosition, false);
-    const wifiTextArea = getTextArea(wifiInfoPosition, true);
-
-    // 업체명 및 부가설명 렌더링
-    if (businessName || additionalText) {
-      let currentY = businessTextArea.y;
-      
-      if (businessName) {
-        const businessTextSize = Math.max(fontSize, canvas.width / 25);
-        ctx.fillStyle = template.textColor;
-        ctx.font = `${fontWeight} ${businessTextSize}px ${businessFont}`;
-        ctx.textAlign = textPosition?.align || 'center';
-        ctx.textBaseline = 'top';
-
-        const textX = textPosition?.align === 'left' ? businessTextArea.x : 
-                     textPosition?.align === 'right' ? businessTextArea.x + businessTextArea.width :
-                     businessTextArea.x + businessTextArea.width / 2;
-
-        // Add text background for better readability
-        const textMetrics = ctx.measureText(businessName);
-        const textWidth = textMetrics.width;
-        const textHeight = businessTextSize;
-
-        const bgPadding = spacing.small;
-        const bgX = textPosition?.align === 'left' ? textX - bgPadding :
-                   textPosition?.align === 'right' ? textX - textWidth - bgPadding :
-                   textX - textWidth / 2 - bgPadding;
-
-        ctx.fillStyle = template.backgroundColor + 'DD';
-        ctx.fillRect(bgX, currentY - bgPadding, textWidth + bgPadding * 2, textHeight + bgPadding * 2);
-
-        ctx.fillStyle = template.textColor;
-        ctx.fillText(businessName, textX, currentY);
-        
-        currentY += textHeight + spacing.medium;
-      }
-
-      if (additionalText) {
-        const additionalTextSize = Math.max(fontSize - 4, canvas.width / 30);
-        ctx.fillStyle = template.accentColor;
-        ctx.font = `${fontWeight === 'bold' ? 'normal' : fontWeight} ${additionalTextSize}px ${businessFont}`;
-        ctx.textAlign = textPosition?.align || 'center';
-        ctx.textBaseline = 'top';
-
-        const textX = textPosition?.align === 'left' ? businessTextArea.x : 
-                     textPosition?.align === 'right' ? businessTextArea.x + businessTextArea.width :
-                     businessTextArea.x + businessTextArea.width / 2;
-
-        const textMetrics = ctx.measureText(additionalText);
-        const textWidth = textMetrics.width;
-        const textHeight = additionalTextSize;
-
-        const bgPadding = spacing.small * 0.8;
-        const bgX = textPosition?.align === 'left' ? textX - bgPadding :
-                   textPosition?.align === 'right' ? textX - textWidth - bgPadding :
-                   textX - textWidth / 2 - bgPadding;
-
-        ctx.fillStyle = template.backgroundColor + 'DD';
-        ctx.fillRect(bgX, currentY - bgPadding, textWidth + bgPadding * 2, textHeight + bgPadding * 2);
-
-        ctx.fillStyle = template.accentColor;
-        ctx.fillText(additionalText, textX, currentY);
-      }
+    // 1. 업체명 (빨간색 영역 - 상단)
+    if (businessName) {
+      const businessFontSize = isLandscape ? baseSize * 0.08 : baseSize * 0.06;
+      ctx.font = `bold ${businessFontSize}px ${getFontFamily(businessFont)}`;
+      const businessY = margins.top + businessFontSize;
+      ctx.fillText(businessName, canvas.width / 2, businessY);
     }
 
-    // WiFi 정보 표시
-    if (showWifiInfo) {
-      const wifiTextSize = Math.max(fontSize - 6, canvas.width / 35);
-      ctx.font = `normal ${wifiTextSize}px ${wifiInfoFont}`;
-      ctx.textAlign = wifiInfoPosition?.align || 'center';
-      ctx.textBaseline = 'top';
+    // 2. 부가설명 (회색 영역 - 업체명 아래)
+    if (additionalText) {
+      const additionalFontSize = isLandscape ? baseSize * 0.05 : baseSize * 0.04;
+      ctx.font = `normal ${additionalFontSize}px ${getFontFamily(businessFont)}`;
+      const additionalY = margins.top + (businessName ? baseSize * 0.08 : 0) + margins.between + additionalFontSize;
+      ctx.fillText(additionalText, canvas.width / 2, additionalY);
+    }
 
-      const textX = wifiInfoPosition?.align === 'left' ? wifiTextArea.x : 
-                   wifiInfoPosition?.align === 'right' ? wifiTextArea.x + wifiTextArea.width :
-                   wifiTextArea.x + wifiTextArea.width / 2;
-      let currentY = wifiTextArea.y;
+    // QR 코드는 이미 중앙에 배치됨 (파란색 영역)
 
-      // 네트워크 이름 표시
-      const ssidText = `WiFi: ${wifiConfig.ssid}`;
-      ctx.fillStyle = template.textColor;
-      const ssidMetrics = ctx.measureText(ssidText);
+    // 3. WiFi 정보 (초록색 영역 - 하단)
+    if (showWifiInfo && wifiConfig.ssid) {
+      const wifiY = qrPosition.y + qrSize + margins.between;
+      const wifiFontSize = isLandscape ? baseSize * 0.035 : baseSize * 0.03;
       
-      const bgPadding = spacing.small;
-      const ssidBgX = wifiInfoPosition?.align === 'left' ? textX - bgPadding :
-                     wifiInfoPosition?.align === 'right' ? textX - ssidMetrics.width - bgPadding :
-                     textX - ssidMetrics.width / 2 - bgPadding;
+      ctx.font = `normal ${wifiFontSize}px ${getFontFamily(wifiInfoFont)}`;
       
-      ctx.fillStyle = template.backgroundColor + 'DD';
-      ctx.fillRect(ssidBgX, currentY - bgPadding, ssidMetrics.width + bgPadding * 2, wifiTextSize + bgPadding * 2);
+      // WiFi 이름 (더 큰 글씨)
+      const ssidFontSize = wifiFontSize * 1.2;
+      ctx.font = `bold ${ssidFontSize}px ${getFontFamily(wifiInfoFont)}`;
+      ctx.fillText(wifiConfig.ssid, canvas.width / 2, wifiY + ssidFontSize);
       
-      ctx.fillStyle = template.textColor;
-      ctx.fillText(ssidText, textX, currentY);
-      currentY += wifiTextSize + spacing.medium;
-
-      // 비밀번호 표시 (보안이 설정된 경우만)
-      if (wifiConfig.security !== 'nopass' && wifiConfig.password) {
-        const passwordText = `Password: ${wifiConfig.password}`;
-        const passwordMetrics = ctx.measureText(passwordText);
-        
-        const passwordBgX = wifiInfoPosition?.align === 'left' ? textX - bgPadding :
-                           wifiInfoPosition?.align === 'right' ? textX - passwordMetrics.width - bgPadding :
-                           textX - passwordMetrics.width / 2 - bgPadding;
-        
-        ctx.fillStyle = template.backgroundColor + 'DD';
-        ctx.fillRect(passwordBgX, currentY - bgPadding, passwordMetrics.width + bgPadding * 2, wifiTextSize + bgPadding * 2);
-        
-        ctx.fillStyle = template.textColor;
-        ctx.fillText(passwordText, textX, currentY);
+      // 비밀번호 (있는 경우, 작은 글씨)
+      if (wifiConfig.password && wifiConfig.security !== 'nopass') {
+        ctx.font = `normal ${wifiFontSize}px ${getFontFamily(wifiInfoFont)}`;
+        const passwordY = wifiY + ssidFontSize + margins.between * 0.8;
+        ctx.fillText(wifiConfig.password, canvas.width / 2, passwordY);
       }
     }
   };
