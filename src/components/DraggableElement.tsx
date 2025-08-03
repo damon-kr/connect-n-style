@@ -43,8 +43,8 @@ export const DraggableElement = ({
         const container = containerRef.current.getBoundingClientRect();
         
         // 더 부드러운 드래그를 위해 계산 방식 개선
-        const deltaX = (e.clientX - dragStart.x) * 0.8; // 속도 감소
-        const deltaY = (e.clientY - dragStart.y) * 0.8;
+        const deltaX = (e.clientX - dragStart.x) * 0.3; // 속도 더 감소
+        const deltaY = (e.clientY - dragStart.y) * 0.3;
         
         const newX = Math.max(0, Math.min(
           container.width - width,
@@ -130,8 +130,8 @@ export const DraggableElement = ({
     >
       {children}
       
-      {/* Resize handles */}
-      {isSelected && isResizable && onSizeChange && (
+      {/* Resize handles - 항상 표시 */}
+      {isResizable && onSizeChange && (
         <>
           {/* Corner resize handle */}
           <div
