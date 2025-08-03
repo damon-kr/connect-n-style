@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { WiFiConfig, QRTemplate } from '@/types/wifi';
 import { PrintSize, PrintOrientation } from '@/types/size';
 import { WiFiForm } from '@/components/WiFiForm';
