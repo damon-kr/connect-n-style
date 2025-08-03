@@ -32,7 +32,8 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const [wifiInfoFont, setWifiInfoFont] = useState('inter');
   const [wifiInfoPosition, setWifiInfoPosition] = useState<TextPosition | null>(textPositions[1]);
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
-  const [pendingAction, setPendingAction] = useState<'download' | 'export' | null>(null);
+  const [pendingAction, setPendingAction] = useState<'download' | 'export' | 'generate' | null>(null);
+  const [isQRGenerated, setIsQRGenerated] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const renderToCanvas = (qrDataUrl: string): Promise<void> => {
@@ -394,9 +395,14 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     }
   };
 
-  useEffect(() => {
-    generateQR();
-  }, [config, template, printSize, businessName, additionalText, businessFont, textPosition, fontSize, fontWeight, showWifiInfo, wifiInfoFont, wifiInfoPosition]);
+  const handleGenerateQR = () => {
+    if (!template || !config.ssid || !printSize) {
+      toast.error('WiFi 정보와 템플릿, 인쇄 크기를 먼저 설정해주세요');
+      return;
+    }
+    setPendingAction('generate');
+    setShowAdInterstitial(true);
+  };
 
   const handleDownload = () => {
     setPendingAction('download');
@@ -408,7 +414,14 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     setShowAdInterstitial(true);
   };
 
-  const handleAdComplete = () => {
+  const handleAdComplete = async () => {
+    if (pendingAction === 'generate') {
+      await generateQR();
+      setIsQRGenerated(true);
+      setPendingAction(null);
+      return;
+    }
+
     const canvas = canvasRef.current;
     if (!canvas) return;
 
@@ -499,10 +512,24 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
               </div>
             )}
             
-            {!qrImage && !isGenerating && template && printSize && (
+            {!isQRGenerated && !isGenerating && template && printSize && config.ssid && (
+              <div className="text-center space-y-4">
+                <div className="text-muted-foreground">
+                  <p>QR 코드를 생성하려면</p>
+                  <p>아래 버튼을 클릭하세요</p>
+                </div>
+                <Button 
+                  onClick={handleGenerateQR}
+                  className="w-full"
+                >
+                  QR 코드 생성하기
+                </Button>
+              </div>
+            )}
+            
+            {!config.ssid && template && printSize && (
               <div className="text-center text-muted-foreground">
-                <p>WiFi 정보를 입력하면</p>
-                <p>QR 코드 미리보기가 표시됩니다</p>
+                <p>WiFi 정보를 먼저 입력해주세요</p>
               </div>
             )}
             
@@ -558,7 +585,11 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           setPendingAction(null);
         }}
         onComplete={handleAdComplete}
-        title={pendingAction === 'download' ? 'PNG 다운로드 준비 중...' : 'PDF 내보내기 준비 중...'}
+        title={
+          pendingAction === 'download' ? 'PNG 다운로드 준비 중...' : 
+          pendingAction === 'export' ? 'PDF 내보내기 준비 중...' : 
+          'QR 코드 생성 중...'
+        }
       />
     </div>
   );
