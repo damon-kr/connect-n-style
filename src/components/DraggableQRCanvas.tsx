@@ -117,7 +117,7 @@ export const DraggableQRCanvas = ({
       {
         id: 'wifi-ssid',
         type: 'wifi-ssid',
-        text: wifiConfig.ssid || 'WiFi 이름',
+        text: wifiConfig.ssid ? `WIFI : ${wifiConfig.ssid}` : 'WIFI : WiFi 이름',
         x: canvasWidth / 2 - 100,
         y: canvasHeight / 2 + 140,
         width: 200,
@@ -126,13 +126,13 @@ export const DraggableQRCanvas = ({
         fontFamily: 'Noto Sans KR',
         fontWeight: 'bold',
         color: '#000000',
-        visible: showWifiInfo && !!wifiConfig.ssid,
+        visible: showWifiInfo,
       },
       // WiFi 비밀번호 (SSID 아래)
       {
         id: 'wifi-password',
         type: 'wifi-password',
-        text: wifiConfig.password || '비밀번호',
+        text: wifiConfig.password ? `PW : ${wifiConfig.password}` : 'PW : 비밀번호',
         x: canvasWidth / 2 - 100,
         y: canvasHeight / 2 + 170,
         width: 200,
@@ -141,7 +141,7 @@ export const DraggableQRCanvas = ({
         fontFamily: 'Noto Sans KR',
         fontWeight: 'normal',
         color: '#666666',
-        visible: showWifiInfo && !!wifiConfig.password && wifiConfig.security !== 'nopass',
+        visible: showWifiInfo && wifiConfig.security !== 'nopass',
       },
     ];
     
@@ -224,7 +224,7 @@ export const DraggableQRCanvas = ({
       {
         id: 'wifi-ssid',
         type: 'wifi-ssid',
-        text: wifiConfig.ssid || 'WiFi 이름',
+        text: wifiConfig.ssid ? `WIFI : ${wifiConfig.ssid}` : 'WIFI : WiFi 이름',
         x: canvasWidth / 2 - 100,
         y: canvasHeight / 2 + 140,
         width: 200,
@@ -233,12 +233,12 @@ export const DraggableQRCanvas = ({
         fontFamily: 'Noto Sans KR',
         fontWeight: 'bold' as const,
         color: '#000000',
-        visible: showWifiInfo && !!wifiConfig.ssid,
+        visible: showWifiInfo,
       },
       {
         id: 'wifi-password',
         type: 'wifi-password',
-        text: wifiConfig.password || '비밀번호',
+        text: wifiConfig.password ? `PW : ${wifiConfig.password}` : 'PW : 비밀번호',
         x: canvasWidth / 2 - 100,
         y: canvasHeight / 2 + 170,
         width: 200,
@@ -247,7 +247,7 @@ export const DraggableQRCanvas = ({
         fontFamily: 'Noto Sans KR',
         fontWeight: 'normal' as const,
         color: '#666666',
-        visible: showWifiInfo && !!wifiConfig.password && wifiConfig.security !== 'nopass',
+        visible: showWifiInfo && wifiConfig.security !== 'nopass',
       },
     ];
     setElements(defaultElements);
