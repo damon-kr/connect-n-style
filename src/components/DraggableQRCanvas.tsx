@@ -58,6 +58,7 @@ export const DraggableQRCanvas = ({
 
   // 초기 요소들 설정
   useEffect(() => {
+    console.log('Elements updating:', { showWifiInfo, wifiConfig });
     const defaultElements: (TextElement | QRElement)[] = [
       // QR 코드 (중앙)
       {
