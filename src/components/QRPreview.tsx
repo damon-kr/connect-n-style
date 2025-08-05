@@ -7,7 +7,7 @@ import { AdInterstitial } from '@/components/AdInterstitial';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Download, Share2, FileText, RotateCcw, Move, Eye, Settings } from 'lucide-react';
+import { Download, Share2, FileText, RotateCcw, Move, Eye, Settings, QrCode } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import { Switch } from '@/components/ui/switch';
@@ -201,7 +201,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         element: {
           id: 'wifi-ssid',
           type: 'wifi-ssid',
-          text: showWifiInfo ? (config.ssid ? `WIFI : ${config.ssid}` : 'WIFI : ') : 'WIFI : ',
+          text: config.ssid ? `WIFI : ${config.ssid}` : 'WIFI : ',
           x: canvasWidth / 2 - 100,
           y: canvasHeight / 2 + 140,
           width: 200,
@@ -210,7 +210,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           fontFamily: 'Noto Sans KR',
           fontWeight: 'bold',
           color: '#000000',
-          visible: showWifiInfo,
+          visible: true,
         } as TextElement
       },
       // WiFi 비밀번호
@@ -226,7 +226,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         element: {
           id: 'wifi-password',
           type: 'wifi-password',
-          text: showWifiInfo ? (config.password ? `PW : ${config.password}` : 'PW : ') : 'PW : ',
+          text: config.password ? `PW : ${config.password}` : 'PW : ',
           x: canvasWidth / 2 - 100,
           y: canvasHeight / 2 + 170,
           width: 200,
@@ -235,7 +235,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           fontFamily: 'Noto Sans KR',
           fontWeight: 'normal',
           color: '#666666',
-          visible: showWifiInfo,
+          visible: true,
         } as TextElement
       },
     ];
@@ -489,21 +489,17 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   };
 
   return (
-    <div className="space-y-4">
-      <Tabs defaultValue="customize" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="customize">
-            <Settings size={16} className="mr-2" />
-            내용 수정
-          </TabsTrigger>
-          <TabsTrigger value="preview">
-            <Eye size={16} className="mr-2" />
-            미리보기 및 다운로드
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="customize" className="space-y-4">
-          <QRCustomizer 
+    <div className="space-y-6">
+      {/* Text Customization */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Settings size={20} />
+            텍스트 커스터마이징
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <QRCustomizer
             businessName={businessName}
             onBusinessNameChange={setBusinessName}
             additionalText={additionalText}
@@ -525,281 +521,234 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
             wifiInfoPosition={null}
             onWifiInfoPositionChange={() => {}}
           />
-        </TabsContent>
+          
+          {/* QR Generation Button */}
+          <div className="pt-4 border-t">
+            <Button 
+              onClick={handleGenerateQR} 
+              disabled={!template || !config.ssid || !printSize || isGenerating}
+              className="w-full h-12 text-base font-medium"
+              size="lg"
+            >
+              {isGenerating ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                  QR 코드 생성 중...
+                </>
+              ) : (
+                <>
+                  <QrCode size={20} className="mr-2" />
+                  {isQRGenerated ? 'QR 코드 다시 생성하기' : 'QR 코드 생성하기'}
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-        <TabsContent value="preview" className="space-y-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Eye size={18} className="text-primary" />
-                  <span className="text-lg">미리보기</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="edit-mode"
-                      checked={isEditMode}
-                      onCheckedChange={setIsEditMode}
-                    />
-                    <Label htmlFor="edit-mode" className="text-sm">
-                      위치 및 크기 조정 모드
-                    </Label>
-                  </div>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={resetLayout}
-                    className="flex items-center gap-1"
-                  >
-                    <RotateCcw size={14} />
-                    초기화
+      {/* Preview with Mode Toggle */}
+      <Card>
+        <CardHeader className="pb-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Eye size={20} />
+              미리보기
+            </CardTitle>
+            
+            <Tabs value={isEditMode ? "edit" : "preview"} onValueChange={(value) => setIsEditMode(value === "edit")} className="w-auto">
+              <TabsList className="grid w-fit grid-cols-2">
+                <TabsTrigger value="preview" className="text-xs px-3">
+                  <Eye size={14} className="mr-1" />
+                  미리보기
+                </TabsTrigger>
+                <TabsTrigger value="edit" className="text-xs px-3">
+                  <Move size={14} className="mr-1" />
+                  위치 및 크기 수정
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {qrImage && printSize ? (
+            <div className="space-y-4">
+              {/* Reset Layout Button for Edit Mode */}
+              {isEditMode && (
+                <div className="flex justify-end">
+                  <Button variant="outline" size="sm" onClick={resetLayout}>
+                    <RotateCcw size={16} className="mr-2" />
+                    레이아웃 초기화
                   </Button>
                 </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {isEditMode && (
-                  <div className="flex items-start gap-2 p-3 bg-blue-50 text-blue-700 rounded-lg">
-                    <Move size={16} className="mt-0.5 flex-shrink-0" />
-                    <div className="text-sm space-y-1">
-                      <p className="font-medium">편집 모드가 활성화되었습니다:</p>
-                      <ul className="space-y-1 text-xs">
-                        <li>• 요소를 클릭하고 드래그하여 위치 이동</li>
-                        <li>• 모서리 핸들을 드래그하여 크기 조정</li>
-                        <li>• PowerPoint 스타일 편집 인터페이스</li>
-                      </ul>
-                    </div>
-                  </div>
-                )}
-
-                {/* 미리보기 캔버스 */}
-                <div
-                  ref={previewRef}
-                  className="relative bg-white border border-gray-200 rounded-lg overflow-hidden mx-auto shadow-sm"
-                  style={{
-                    width: printSize ? Math.min(printSize.width, 600) : 400,
-                    height: printSize ? Math.min(printSize.height, 600) : 400,
-                    aspectRatio: printSize ? `${printSize.width}/${printSize.height}` : '1/1',
-                  }}
-                  onMouseMove={handleMouseMove}
-                  onMouseUp={handleMouseUp}
-                  onMouseLeave={handleMouseUp}
-                >
-                  {elements.map(element => {
-                    const shouldShow = element.element.type === 'qr' || 
-                      ('visible' in element.element && element.element.visible);
+              )}
+              
+              {/* Preview Container */}
+              <div 
+                ref={previewRef}
+                className={`relative bg-white border-2 border-dashed border-gray-300 mx-auto overflow-hidden ${
+                  isEditMode ? 'cursor-crosshair' : ''
+                }`}
+                style={{
+                  width: `${Math.min(400, printSize.width)}px`,
+                  height: `${Math.min(400, printSize.height * (Math.min(400, printSize.width) / printSize.width))}px`,
+                  aspectRatio: `${printSize.width} / ${printSize.height}`
+                }}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              >
+                {/* Background */}
+                <div 
+                  className="absolute inset-0"
+                  style={{ backgroundColor: template?.backgroundColor || '#ffffff' }}
+                />
+                
+                {/* QR Code */}
+                {qrImage && (
+                  <div
+                    className={`absolute ${isEditMode ? 'border-2 border-blue-500 cursor-move' : ''} ${
+                      selectedElementId === 'qr' ? 'ring-2 ring-blue-400 ring-offset-1' : ''
+                    }`}
+                    style={{
+                      left: `${(elements.find(el => el.id === 'qr')?.x || 0) * (Math.min(400, printSize.width) / printSize.width)}px`,
+                      top: `${(elements.find(el => el.id === 'qr')?.y || 0) * (Math.min(400, printSize.height) / printSize.height)}px`,
+                      width: `${(elements.find(el => el.id === 'qr')?.width || 160) * (Math.min(400, printSize.width) / printSize.width)}px`,
+                      height: `${(elements.find(el => el.id === 'qr')?.height || 160) * (Math.min(400, printSize.width) / printSize.width)}px`,
+                    }}
+                    onMouseDown={(e) => handleMouseDown(e, 'qr', 'drag')}
+                  >
+                    <img 
+                      src={qrImage} 
+                      alt="QR Code" 
+                      className="w-full h-full object-contain"
+                      draggable={false}
+                    />
                     
-                    if (!shouldShow) return null;
-
-                    const scale = printSize ? Math.min(600 / printSize.width, 600 / printSize.height) : 1;
-                    
-                    return (
-                      <div
-                        key={element.id}
-                        className={`absolute ${isEditMode ? 'cursor-move' : ''}`}
-                        style={{
-                          left: element.x * scale,
-                          top: element.y * scale,
-                          width: element.width * scale,
-                          height: element.height * scale,
-                          border: isEditMode && element.selected ? '2px solid #3b82f6' : 'none',
-                          backgroundColor: isEditMode && element.selected ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                        }}
-                        onMouseDown={(e) => handleMouseDown(e, element.id, 'drag')}
-                      >
-                        {element.element.type === 'qr' ? (
-                          qrImage ? (
-                            <img
-                              src={qrImage}
-                              alt="QR Code"
-                              className="w-full h-full object-contain rounded"
-                            />
-                          ) : (
-                            <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400 text-xs rounded border border-dashed border-gray-300">
-                              QR
-                            </div>
-                          )
-                        ) : (
+                    {/* Resize Handles for QR */}
+                    {isEditMode && selectedElementId === 'qr' && (
+                      <>
+                        {['nw', 'ne', 'sw', 'se'].map((handle) => (
                           <div
-                            className="w-full h-full flex items-center justify-center text-center px-2 py-1 rounded"
-                            style={{
-                              fontSize: 'fontSize' in element.element ? Math.max(8, element.element.fontSize * scale * 0.7) : 10,
-                              fontFamily: 'fontFamily' in element.element ? element.element.fontFamily : 'inherit',
-                              fontWeight: 'fontWeight' in element.element ? element.element.fontWeight : 'normal',
-                              color: 'color' in element.element ? element.element.color : '#000000',
-                            }}
-                          >
-                            {'text' in element.element ? element.element.text : ''}
-                          </div>
-                        )}
-
-                        {/* PowerPoint 스타일 리사이즈 핸들 */}
-                        {isEditMode && element.selected && (
-                          <>
-                            {/* 모서리 핸들 */}
-                            <div
-                              className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-nw-resize"
-                              style={{ left: -4, top: -4 }}
-                              onMouseDown={(e) => handleMouseDown(e, element.id, 'resize', 'nw')}
-                            />
-                            <div
-                              className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-ne-resize"
-                              style={{ right: -4, top: -4 }}
-                              onMouseDown={(e) => handleMouseDown(e, element.id, 'resize', 'ne')}
-                            />
-                            <div
-                              className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-sw-resize"
-                              style={{ left: -4, bottom: -4 }}
-                              onMouseDown={(e) => handleMouseDown(e, element.id, 'resize', 'sw')}
-                            />
-                            <div
-                              className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-se-resize"
-                              style={{ right: -4, bottom: -4 }}
-                              onMouseDown={(e) => handleMouseDown(e, element.id, 'resize', 'se')}
-                            />
-                            
-                            {/* 가장자리 핸들 */}
-                            <div
-                              className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-n-resize"
-                              style={{ left: '50%', top: -4, transform: 'translateX(-50%)' }}
-                              onMouseDown={(e) => handleMouseDown(e, element.id, 'resize', 'n')}
-                            />
-                            <div
-                              className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-s-resize"
-                              style={{ left: '50%', bottom: -4, transform: 'translateX(-50%)' }}
-                              onMouseDown={(e) => handleMouseDown(e, element.id, 'resize', 's')}
-                            />
-                            <div
-                              className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-w-resize"
-                              style={{ left: -4, top: '50%', transform: 'translateY(-50%)' }}
-                              onMouseDown={(e) => handleMouseDown(e, element.id, 'resize', 'w')}
-                            />
-                            <div
-                              className="absolute w-2 h-2 bg-blue-500 border border-white rounded-sm cursor-e-resize"
-                              style={{ right: -4, top: '50%', transform: 'translateY(-50%)' }}
-                              onMouseDown={(e) => handleMouseDown(e, element.id, 'resize', 'e')}
-                            />
-                          </>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {/* 선택된 요소 정보 */}
-                {isEditMode && selectedElementId && (
-                  <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Settings size={16} className="text-primary" />
-                      <p className="text-sm font-medium text-primary">
-                        선택된 요소: {(() => {
-                          const element = elements.find(el => el.id === selectedElementId);
-                          if (!element) return selectedElementId;
-                          switch (element.element.type) {
-                            case 'qr': return 'QR 코드';
-                            case 'business': return '업체명';
-                            case 'additional': return '부가설명';
-                            case 'other': return '기타 문구';
-                            case 'wifi-ssid': return 'WiFi 이름';
-                            case 'wifi-password': return 'WiFi 비밀번호';
-                            default: return selectedElementId;
-                          }
-                        })()}
-                      </p>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="space-y-1">
-                        <div className="text-muted-foreground">위치</div>
-                        <div className="font-mono">X: {Math.round(elements.find(el => el.id === selectedElementId)?.x || 0)}px</div>
-                        <div className="font-mono">Y: {Math.round(elements.find(el => el.id === selectedElementId)?.y || 0)}px</div>
-                      </div>
-                      <div className="space-y-1">
-                        <div className="text-muted-foreground">크기</div>
-                        <div className="font-mono">W: {Math.round(elements.find(el => el.id === selectedElementId)?.width || 0)}px</div>
-                        <div className="font-mono">H: {Math.round(elements.find(el => el.id === selectedElementId)?.height || 0)}px</div>
-                      </div>
-                    </div>
+                            key={handle}
+                            className={`absolute w-2 h-2 bg-blue-500 border border-white cursor-${handle}-resize ${
+                              handle.includes('n') ? '-top-1' : '-bottom-1'
+                            } ${
+                              handle.includes('w') ? '-left-1' : '-right-1'
+                            }`}
+                            onMouseDown={(e) => handleMouseDown(e, 'qr', 'resize', handle)}
+                          />
+                        ))}
+                      </>
+                    )}
                   </div>
                 )}
+                
+                {/* Text Elements */}
+                {elements.filter(el => el.element.type !== 'qr').map((element) => {
+                  const textEl = element.element as TextElement;
+                  if (!textEl.visible) return null;
+                  
+                  return (
+                    <div
+                      key={element.id}
+                      className={`absolute ${isEditMode ? 'border border-green-500 cursor-move' : ''} ${
+                        selectedElementId === element.id ? 'ring-2 ring-green-400 ring-offset-1' : ''
+                      }`}
+                      style={{
+                        left: `${element.x * (Math.min(400, printSize.width) / printSize.width)}px`,
+                        top: `${element.y * (Math.min(400, printSize.height) / printSize.height)}px`,
+                        width: `${element.width * (Math.min(400, printSize.width) / printSize.width)}px`,
+                        height: `${element.height * (Math.min(400, printSize.width) / printSize.width)}px`,
+                        fontSize: `${textEl.fontSize * (Math.min(400, printSize.width) / printSize.width)}px`,
+                        fontFamily: textEl.fontFamily,
+                        fontWeight: textEl.fontWeight,
+                        color: textEl.color,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        textAlign: 'center',
+                        lineHeight: '1.2',
+                      }}
+                      onMouseDown={(e) => handleMouseDown(e, element.id, 'drag')}
+                    >
+                      {textEl.text}
+                      
+                      {/* Resize Handles for Text */}
+                      {isEditMode && selectedElementId === element.id && (
+                        <>
+                          {['nw', 'ne', 'sw', 'se'].map((handle) => (
+                            <div
+                              key={handle}
+                              className={`absolute w-2 h-2 bg-green-500 border border-white cursor-${handle}-resize ${
+                                handle.includes('n') ? '-top-1' : '-bottom-1'
+                              } ${
+                                handle.includes('w') ? '-left-1' : '-right-1'
+                              }`}
+                              onMouseDown={(e) => handleMouseDown(e, element.id, 'resize', handle)}
+                            />
+                          ))}
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-            </CardContent>
-          </Card>
-
-          {/* QR 생성 및 다운로드 버튼 */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col gap-3">
-                <Button
-                  onClick={handleGenerateQR}
-                  disabled={isGenerating || !template || !config.ssid || !printSize}
-                  className="w-full"
+              
+              {/* Download Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+                <Button 
+                  onClick={handleDownload} 
+                  disabled={!qrImage}
+                  className="flex-1 h-12"
                   size="lg"
                 >
-                  {isGenerating ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                      QR 코드 생성 중...
-                    </>
-                  ) : (
-                    <>
-                      {isQRGenerated ? 'QR 코드 다시 생성하기' : 'QR 코드 생성하기'}
-                    </>
-                  )}
+                  <Download size={20} className="mr-2" />
+                  PNG 다운로드
                 </Button>
-
-                {qrImage && (
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={handleDownload}
-                      className="flex items-center gap-2"
-                    >
-                      <Download size={16} />
-                      PNG 다운로드
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      onClick={handlePDFExport}
-                      className="flex items-center gap-2"
-                    >
-                      <FileText size={16} />
-                      PDF 다운로드
-                    </Button>
-                    
-                    <Button
-                      variant="outline"
-                      onClick={() => onShare(qrImage)}
-                      className="flex items-center gap-2"
-                    >
-                      <Share2 size={16} />
-                      공유하기
-                    </Button>
-                  </div>
-                )}
+                
+                <Button 
+                  onClick={handlePDFExport} 
+                  disabled={!qrImage}
+                  variant="outline"
+                  className="flex-1 h-12"
+                  size="lg"
+                >
+                  <FileText size={20} className="mr-2" />
+                  PDF 다운로드
+                </Button>
+                
+                <Button 
+                  onClick={() => onShare(qrImage || undefined)} 
+                  disabled={!qrImage}
+                  variant="outline"
+                  className="flex-1 h-12"
+                  size="lg"
+                >
+                  <Share2 size={20} className="mr-2" />
+                  공유하기
+                </Button>
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </div>
+          ) : (
+            <div className="text-center text-muted-foreground py-16 border-2 border-dashed border-muted rounded-lg">
+              QR 코드를 먼저 생성해주세요
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* 숨겨진 캔버스 */}
-      <canvas
-        ref={canvasRef}
-        className="hidden"
-      />
-
-      {/* 광고 모달 */}
-      <AdInterstitial
+      {/* Hidden Canvas for Export */}
+      <canvas ref={canvasRef} style={{ display: 'none' }} />
+      
+      {/* Ad Interstitial */}
+      <AdInterstitial 
         isOpen={showAdInterstitial}
-        onComplete={handleAdComplete}
         onClose={() => {
           setShowAdInterstitial(false);
           setPendingAction(null);
         }}
-        title="광고 시청 후 계속"
+        onComplete={handleAdComplete}
+        title="광고 보기"
       />
     </div>
   );

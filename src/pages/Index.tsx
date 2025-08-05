@@ -118,10 +118,10 @@ const Index = () => {
       {/* Main Content */}
       <section className="pb-12 px-4">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-8 lg:gap-12">
             {/* Step 1: Print Size Selection */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-4">
+            <div className="space-y-8">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
                   1
                 </div>
@@ -137,8 +137,8 @@ const Index = () => {
             </div>
 
             {/* Step 2: WiFi Configuration */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-4">
+            <div className="space-y-8">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
                   2
                 </div>
@@ -152,8 +152,8 @@ const Index = () => {
             </div>
 
             {/* Step 3: Template Selection */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-4">
+            <div className="space-y-8">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
                   3
                 </div>
@@ -169,31 +169,39 @@ const Index = () => {
               )}
               
               {!selectedSize && (
-                <div className="text-center text-muted-foreground py-8">
+                <div className="text-center text-muted-foreground py-12 border-2 border-dashed border-muted rounded-lg">
                   먼저 인쇄 크기를 선택해주세요
                 </div>
               )}
             </div>
 
-            {/* Step 4: Preview & Download */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 mb-4">
+            {/* Step 4: Text Customization & Preview */}
+            <div className="space-y-8">
+              <div className="flex items-center gap-3 mb-6">
                 <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
                   4
                 </div>
-                <h2 className="text-xl font-semibold">다운로드</h2>
+                <h2 className="text-xl font-semibold">텍스트 커스터마이징</h2>
               </div>
               
               {/* 사이드바 광고 */}
-              <AdBanner position="sidebar" className="mb-4" />
+              <AdBanner position="sidebar" className="mb-6" />
               
-              <QRPreview 
-                config={wifiConfig}
-                template={selectedTemplate}
-                printSize={selectedSize}
-                onDownload={handleDownload}
-                onShare={handleShare}
-              />
+              {selectedSize && selectedTemplate && (
+                <QRPreview 
+                  config={wifiConfig}
+                  template={selectedTemplate}
+                  printSize={selectedSize}
+                  onDownload={handleDownload}
+                  onShare={handleShare}
+                />
+              )}
+              
+              {(!selectedSize || !selectedTemplate) && (
+                <div className="text-center text-muted-foreground py-12 border-2 border-dashed border-muted rounded-lg">
+                  인쇄 크기와 디자인을 먼저 선택해주세요
+                </div>
+              )}
             </div>
           </div>
         </div>
