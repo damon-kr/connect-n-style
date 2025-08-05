@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { QRTemplate, AIGeneratedTemplate } from "@/types/wifi";
 import { 
   generateTemplatesBatch, 
+  generateMultipleVariations,
   CategoryType,
   buildTemplatePrompt 
 } from "@/lib/aiTemplateGenerator";
@@ -100,6 +101,7 @@ export const AIDesignGenerator: React.FC<AIDesignGeneratorProps> = ({ onTemplate
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedTemplates, setGeneratedTemplates] = useState<QRTemplate[]>([]);
   const [aiTemplates, setAiTemplates] = useState<AIGeneratedTemplate[]>([]);
+  const [showVariations, setShowVariations] = useState(false);
 
   const handleCategorySelect = (category: DesignCategory) => {
     setSelectedCategory(category);
@@ -118,10 +120,22 @@ export const AIDesignGenerator: React.FC<AIDesignGeneratorProps> = ({ onTemplate
       let aiGeneratedTemplates: AIGeneratedTemplate[] = [];
       
       if (selectedCategory) {
-        aiGeneratedTemplates = await generateTemplatesBatch(
-          selectedCategory.id, 
-          customPrompt.trim() || undefined
-        );
+        if (showVariations) {
+          // 선택된 카테고리의 한 레이아웃에 대해 다양한 변형 생성
+          const layouts = ['vertical_centered', 'horizontal_split', 'top_heavy'] as const;
+          const randomLayout = layouts[Math.floor(Math.random() * layouts.length)];
+          aiGeneratedTemplates = await generateMultipleVariations(
+            selectedCategory.id,
+            randomLayout,
+            4,
+            customPrompt.trim() || undefined
+          );
+        } else {
+          aiGeneratedTemplates = await generateTemplatesBatch(
+            selectedCategory.id, 
+            customPrompt.trim() || undefined
+          );
+        }
       } else if (customPrompt.trim()) {
         // 커스텀 프롬프트로 기본 카테고리 사용
         aiGeneratedTemplates = await generateTemplatesBatch(
@@ -232,7 +246,7 @@ export const AIDesignGenerator: React.FC<AIDesignGeneratorProps> = ({ onTemplate
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                AI 템플릿 생성하기
+                {showVariations ? '다양한 변형 생성하기' : 'AI 템플릿 생성하기'}
               </>
             )}
           </Button>
@@ -248,6 +262,22 @@ export const AIDesignGenerator: React.FC<AIDesignGeneratorProps> = ({ onTemplate
             </Button>
           )}
         </div>
+
+        {/* 변형 생성 옵션 */}
+        {selectedCategory && (
+          <div className="flex items-center gap-3 pt-2 border-t">
+            <input
+              type="checkbox"
+              id="show-variations"
+              checked={showVariations}
+              onChange={(e) => setShowVariations(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            <label htmlFor="show-variations" className="text-sm text-muted-foreground cursor-pointer">
+              선택한 스타일의 다양한 변형 생성 (3-5개)
+            </label>
+          </div>
+        )}
 
         {/* 생성된 템플릿 수 표시 */}
         {generatedTemplates.length > 0 && (

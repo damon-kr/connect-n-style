@@ -6,18 +6,18 @@ export type CategoryType = 'minimal_business' | 'cafe_vintage' | 'modern_bold' |
 // AI 프롬프트 생성 함수 - 실제 비즈니스 카드 수준의 디테일한 프롬프트
 export const buildTemplatePrompt = (category: CategoryType, layout: LayoutType): string => {
   const categoryPrompts = {
-    minimal_business: "Professional business card design for WiFi access, clean white background with elegant navy blue (#1e3a8a) accent elements, sophisticated corporate typography using Helvetica/Arial font family, minimalist geometric border design, subtle company logo placeholder area, premium business card aesthetic with high-end printing quality, professional office environment suitable",
-    cafe_vintage: "Vintage coffee shop WiFi access card, warm cream/beige background (#f5f5dc), hand-lettered script font for 'WiFi' title, decorative coffee bean illustrations as border ornaments, vintage cafe atmosphere with steam wisps, rustic wooden texture elements, antique paper aging effect, warm sepia brown color palette (#8b4513), artisanal coffee shop branding style",
-    modern_bold: "Contemporary tech-forward WiFi card design, pristine white base with electric blue (#0066ff) geometric accent lines, ultra-modern sans-serif typography (Roboto/Montserrat style), angular geometric patterns, sleek tech company branding, minimalist Scandinavian design influence, clean architectural lines, high-tech corporate aesthetic",
-    friendly_colorful: "Welcoming family-friendly WiFi card, soft pastel background with cheerful rainbow accent colors (#ff6b6b coral, #4ecdc4 turquoise), playful rounded typography, simple line-art icons (heart, smile, home), warm welcoming atmosphere, child-friendly design elements, cozy home/cafe environment, approachable community feeling"
+    minimal_business: "Professional minimalist WiFi access business card, clean white background with subtle navy blue (#1e3a8a) accents, modern sans-serif typography (Helvetica/Arial), elegant geometric line borders, simple 'Free WiFi' text in header, sophisticated corporate branding style, premium matte cardstock texture, high-end office environment aesthetic, subtle drop shadows, 300 DPI print quality",
+    cafe_vintage: "Vintage coffee shop WiFi access card design, warm cream/beige (#f5f5dc) aged paper background, hand-lettered script calligraphy font for 'Free WiFi' title, decorative coffee bean border illustrations, steaming coffee cup silhouette, rustic burlap texture overlay, antique sepia brown (#8b4513) color palette, aged paper effect with coffee stains, artisanal cafe branding with vintage typography",
+    modern_bold: "Contemporary tech-forward WiFi card, pristine white base with electric blue (#0066ff) gradient accent lines, ultra-modern geometric sans-serif typography (Roboto/Montserrat style), angular tech patterns, bold 'WiFi Access' header, sleek minimalist Scandinavian design, clean architectural lines, high-contrast color blocking, futuristic corporate tech aesthetic, laser-cut precision edges",
+    friendly_colorful: "Welcoming family-friendly WiFi card, soft pastel gradient background with cheerful colors (#ff6b6b coral, #4ecdc4 turquoise, #ffd93d yellow), playful rounded bubble typography, cute line-art icons (heart, smile, home, wifi symbol), warm cozy atmosphere, child-friendly design elements with rounded corners, community cafe feeling, hand-drawn illustration style, welcoming neighborhood aesthetic"
   };
 
   const layoutPrompts = {
-    vertical_centered: "vertical business card layout: elegant 'WiFi' title at top center, spacious middle area reserved for QR code placement, network information section at bottom, symmetrical balanced composition, plenty of white space for readability",
-    horizontal_split: "horizontal business card format: decorative branded left section (1/3 width) with ornamental elements and WiFi title, large right section (2/3 width) designated for QR code and network details, professional landscape orientation",
-    top_heavy: "top-weighted design layout: substantial header section occupying upper 40% with branding and decorative elements, compressed lower area for QR code and essential information, authoritative business card hierarchy",
-    bottom_heavy: "bottom-emphasized layout: minimal clean upper section with small QR area, expansive decorative footer section with ornamental patterns and ample space for network information, elegant invitation card style",
-    tag_style: "hanging luggage tag format: authentic tag shape with hole punched at top center, natural vertical flow from hanging hole to QR placement to text area, realistic tag proportions and texture, practical travel tag aesthetic"
+    vertical_centered: "vertical business card layout (portrait orientation): elegant decorative 'Free WiFi' title at top center with ornamental flourishes, spacious middle section reserved for QR code placement with frame border, network information text area at bottom with elegant typography, symmetrical balanced composition with ample white space margins",
+    horizontal_split: "horizontal business card format (landscape orientation): decorative branded left section (30% width) with ornamental design elements and stylized 'WiFi Access' title, large right section (70% width) designated for central QR code and network details below, professional landscape business card proportions",
+    top_heavy: "top-weighted design layout: substantial decorative header section occupying upper 45% with beautiful branding elements and large 'Free WiFi' title, compressed lower area with central QR code and essential network information, elegant invitation card hierarchy with ornamental borders",
+    bottom_heavy: "bottom-emphasized layout: minimal clean upper section with centered QR code area, expansive decorative footer section with ornamental patterns and stylized network information display, elegant formal card style with decorative bottom border elements",
+    tag_style: "hanging luggage tag format: authentic tag shape with reinforced hole punched at top center, natural vertical information flow from hanging hole to 'WiFi Access' title to central QR code area to network details, realistic cardstock tag proportions with rounded corners, practical travel tag aesthetic with string hole"
   };
 
   const printSpecs = "Ultra-high resolution print-ready design, 300 DPI minimum quality, standard business card dimensions 3.5×2 inches (89×51mm), professional CMYK color profile, proper 0.125 inch bleed margins, ink-efficient color usage under 20% coverage, laser printer optimized contrast ratios, commercial printing quality, vector-style graphics preferred over gradients";
@@ -117,7 +117,24 @@ const addPromptVariation = (basePrompt: string, variationIndex: number): string 
   return `${basePrompt}. Additional style guidance: ${currentVariation}, unique visual elements, distinctive design character.`;
 };
 
-// 배치별 템플릿 생성
+// 다중 이미지 생성 함수
+export const generateMultipleVariations = async (
+  category: CategoryType,
+  layout: LayoutType,
+  count: number = 3,
+  customPrompt?: string
+): Promise<AIGeneratedTemplate[]> => {
+  const basePrompt = customPrompt || buildTemplatePrompt(category, layout);
+  
+  const templatePromises = Array.from({ length: count }, (_, index) => {
+    const variedPrompt = addPromptVariation(basePrompt, index);
+    return generateAITemplate(category, layout, variedPrompt);
+  });
+  
+  return Promise.all(templatePromises);
+};
+
+// 배치별 템플릿 생성 (한 레이아웃당 하나씩)
 export const generateTemplatesBatch = async (
   category: CategoryType,
   customPrompt?: string

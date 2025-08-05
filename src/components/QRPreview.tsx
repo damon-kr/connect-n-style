@@ -701,7 +701,23 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                 <div 
                   className="absolute inset-0"
                   style={{ backgroundColor: template?.backgroundColor || '#ffffff' }}
-                />
+                >
+                  {/* AI 생성 배경 이미지 */}
+                  {template?.aiGeneratedBackground && (
+                    <div 
+                      className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                      style={{ 
+                        backgroundImage: `url(${template.aiGeneratedBackground})`,
+                        filter: 'brightness(0.95) contrast(1.05)'
+                      }}
+                    />
+                  )}
+                  
+                  {/* 반투명 오버레이로 텍스트 가독성 향상 */}
+                  {template?.aiGeneratedBackground && (
+                    <div className="absolute inset-0 bg-black/10" />
+                  )}
+                </div>
                 
                 {/* QR Code */}
                 {qrImage && (
@@ -714,15 +730,25 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                       top: `${(elements.find(el => el.id === 'qr')?.y || 0) * (Math.min(400, printSize.height) / printSize.height)}px`,
                       width: `${(elements.find(el => el.id === 'qr')?.width || 160) * (Math.min(400, printSize.width) / printSize.width)}px`,
                       height: `${(elements.find(el => el.id === 'qr')?.height || 160) * (Math.min(400, printSize.width) / printSize.width)}px`,
+                      zIndex: 20
                     }}
                     onMouseDown={(e) => handleMouseDown(e, 'qr', 'drag')}
                   >
-                    <img 
-                      src={qrImage} 
-                      alt="QR Code" 
-                      className="w-full h-full object-contain"
-                      draggable={false}
-                    />
+                    <div 
+                      className="w-full h-full p-1 rounded-lg"
+                      style={{
+                        background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.95)' : 'transparent',
+                        backdropFilter: template?.aiGeneratedBackground ? 'blur(8px)' : 'none',
+                        boxShadow: template?.aiGeneratedBackground ? '0 4px 12px rgba(0,0,0,0.3)' : 'none'
+                      }}
+                    >
+                      <img 
+                        src={qrImage} 
+                        alt="QR Code" 
+                        className="w-full h-full object-contain"
+                        draggable={false}
+                      />
+                    </div>
                     
                     {/* Resize Handles for QR */}
                     {isEditMode && selectedElementId === 'qr' && (
@@ -762,12 +788,18 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                         fontSize: `${textEl.fontSize * (Math.min(400, printSize.width) / printSize.width)}px`,
                         fontFamily: textEl.fontFamily,
                         fontWeight: textEl.fontWeight,
-                        color: textEl.color,
+                        color: template?.aiGeneratedBackground ? 'white' : textEl.color,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         textAlign: 'center',
                         lineHeight: '1.2',
+                        zIndex: 20,
+                        background: template?.aiGeneratedBackground ? 'rgba(0,0,0,0.4)' : 'transparent',
+                        padding: template?.aiGeneratedBackground ? '4px 8px' : '0',
+                        borderRadius: template?.aiGeneratedBackground ? '8px' : '0',
+                        backdropFilter: template?.aiGeneratedBackground ? 'blur(6px)' : 'none',
+                        textShadow: template?.aiGeneratedBackground ? '1px 1px 3px rgba(0,0,0,0.8)' : 'none'
                       }}
                       onMouseDown={(e) => handleMouseDown(e, element.id, 'drag')}
                     >
