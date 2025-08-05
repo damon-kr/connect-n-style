@@ -30,16 +30,16 @@ export const WiFiForm = ({ config, onConfigChange }: WiFiFormProps) => {
 
   return (
     <Card className="w-full">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2 text-lg">
-          <Wifi size={20} className="text-primary" />
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Wifi size={16} className="text-primary" />
           WiFi 네트워크 정보
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="ssid" className="text-sm font-medium">
+          <div className="flex items-center gap-1">
+            <Label htmlFor="ssid" className="text-xs font-medium">
               네트워크 이름 (SSID) *
             </Label>
             <HelpTooltip content="WiFi 설정에서 보이는 네트워크 이름입니다. 스마트폰의 WiFi 설정에서 확인할 수 있습니다." />
@@ -59,8 +59,8 @@ export const WiFiForm = ({ config, onConfigChange }: WiFiFormProps) => {
         </div>
 
         <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="security" className="text-sm font-medium">
+          <div className="flex items-center gap-1">
+            <Label htmlFor="security" className="text-xs font-medium">
               보안 유형
             </Label>
             <HelpTooltip content={
@@ -92,8 +92,8 @@ export const WiFiForm = ({ config, onConfigChange }: WiFiFormProps) => {
 
         {config.security !== 'nopass' && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="password" className="text-sm font-medium">
+            <div className="flex items-center gap-1">
+              <Label htmlFor="password" className="text-xs font-medium">
                 비밀번호 *
               </Label>
               <HelpTooltip content="WiFi 연결 시 입력하는 비밀번호입니다. 공유기 스티커나 관리자가 설정한 비밀번호를 입력하세요." />
@@ -127,8 +127,8 @@ export const WiFiForm = ({ config, onConfigChange }: WiFiFormProps) => {
 
         <div className="flex items-center justify-between py-2">
           <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="hidden" className="text-sm font-medium">
+            <div className="flex items-center gap-1">
+              <Label htmlFor="hidden" className="text-xs font-medium">
                 숨겨진 네트워크
               </Label>
               <HelpTooltip content="네트워크가 자동으로 검색되지 않는 경우 활성화하세요. 대부분의 경우 비활성화 상태로 유지하시면 됩니다." />

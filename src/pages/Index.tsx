@@ -116,16 +116,16 @@ const Index = () => {
       </section>
 
       {/* Main Content */}
-      <section className="pb-12 px-4">
+      <section className="pb-12 px-2 sm:px-4">
         <div className="container mx-auto max-w-7xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-8 lg:gap-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-4 gap-4 lg:gap-6 xl:gap-8">
             {/* Step 1: Print Size Selection */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   1
                 </div>
-                <h2 className="text-xl font-semibold">인쇄 크기</h2>
+                <h2 className="text-lg font-semibold">인쇄 크기</h2>
               </div>
               
               <PrintSizeSelector 
@@ -137,12 +137,12 @@ const Index = () => {
             </div>
 
             {/* Step 2: WiFi Configuration */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   2
                 </div>
-                <h2 className="text-xl font-semibold">WiFi 정보</h2>
+                <h2 className="text-lg font-semibold">WiFi 정보</h2>
               </div>
               
               <WiFiForm 
@@ -152,12 +152,12 @@ const Index = () => {
             </div>
 
             {/* Step 3: Template Selection */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   3
                 </div>
-                <h2 className="text-xl font-semibold">디자인 선택</h2>
+                <h2 className="text-lg font-semibold">디자인 선택</h2>
               </div>
               
               {selectedSize && (
@@ -176,12 +176,12 @@ const Index = () => {
             </div>
 
             {/* Step 4: Text Customization & Preview */}
-            <div className="space-y-8">
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-sm font-semibold">
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   4
                 </div>
-                <h2 className="text-xl font-semibold">텍스트 커스터마이징</h2>
+                <h2 className="text-lg font-semibold">텍스트 커스터마이징</h2>
               </div>
               
               {/* 사이드바 광고 */}

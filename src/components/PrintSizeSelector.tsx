@@ -35,15 +35,15 @@ export const PrintSizeSelector = ({ selectedSize, selectedOrientation, onSizeSel
                 )}
                 onClick={() => onOrientationSelect(orientation.id)}
               >
-                <CardContent className="p-3">
-                  <div className="flex items-center gap-2">
+                <CardContent className="p-2">
+                  <div className="flex items-center gap-1">
                     {isSelected && (
-                      <div className="bg-primary text-primary-foreground rounded-full p-1">
-                        <Check size={10} />
+                      <div className="bg-primary text-primary-foreground rounded-full p-0.5">
+                        <Check size={8} />
                       </div>
                     )}
-                    <IconComponent size={16} className="text-primary" />
-                    <span className="text-sm font-medium">{orientation.name}</span>
+                    <IconComponent size={12} className="text-primary flex-shrink-0" />
+                    <span className="text-xs font-medium truncate">{orientation.name}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -55,7 +55,7 @@ export const PrintSizeSelector = ({ selectedSize, selectedOrientation, onSizeSel
       {/* 크기 선택 */}
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-foreground">크기</h4>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {printSizes.map((size) => {
             const isSelected = selectedSize?.id === size.id;
             const orientedSize = getOrientedSize(size, selectedOrientation);
@@ -69,27 +69,27 @@ export const PrintSizeSelector = ({ selectedSize, selectedOrientation, onSizeSel
                 )}
                 onClick={() => onSizeSelect(orientedSize)}
               >
-                <CardContent className="p-3">
-                  <div className="relative">
-                    {isSelected && (
-                      <div className="absolute -top-1 -right-1 z-10">
-                        <div className="bg-primary text-primary-foreground rounded-full p-1">
-                          <Check size={10} />
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-2 mb-2">
-                      <Printer size={16} className="text-primary" />
-                      <h4 className="font-medium text-sm text-foreground">{size.name}</h4>
-                    </div>
-                    
-                    <p className="text-xs text-muted-foreground mb-1">{size.description}</p>
-                    <p className="text-xs text-primary font-mono">
-                      {orientedSize.width} × {orientedSize.height}px
-                    </p>
-                  </div>
-                </CardContent>
+                 <CardContent className="p-2">
+                   <div className="relative">
+                     {isSelected && (
+                       <div className="absolute -top-1 -right-1 z-10">
+                         <div className="bg-primary text-primary-foreground rounded-full p-1">
+                           <Check size={8} />
+                         </div>
+                       </div>
+                     )}
+                     
+                     <div className="flex items-start gap-1 mb-1">
+                       <Printer size={12} className="text-primary mt-0.5 flex-shrink-0" />
+                       <h4 className="font-medium text-xs text-foreground leading-tight break-words">{size.name}</h4>
+                     </div>
+                     
+                     <p className="text-xs text-muted-foreground mb-1 leading-tight break-words">{size.description}</p>
+                     <p className="text-xs text-primary font-mono leading-tight">
+                       {orientedSize.width}×{orientedSize.height}px
+                     </p>
+                   </div>
+                 </CardContent>
               </Card>
             );
           })}

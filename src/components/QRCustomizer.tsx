@@ -87,24 +87,24 @@ export const QRCustomizer = ({
 }: QRCustomizerProps) => {
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Palette size={20} className="text-primary" />
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Palette size={16} className="text-primary" />
           텍스트 커스터마이징
         </CardTitle>
       </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             {/* 업체명 및 부가설명 섹션 */}
-            <div className="space-y-6 p-4 border rounded-lg">
+            <div className="space-y-4 p-3 border rounded-lg">
               <div className="flex items-center gap-2">
-                <Type size={20} className="text-primary" />
-                <h3 className="text-lg font-semibold">업체명 & 부가설명</h3>
+                <Type size={16} className="text-primary" />
+                <h3 className="text-base font-semibold">업체명 & 부가설명</h3>
               </div>
               
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="businessName">업체명 또는 타이틀</Label>
+              <div className="space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="businessName" className="text-xs">업체명 또는 타이틀</Label>
                   <Input
                     id="businessName"
                     placeholder="예: 스타벅스 강남점"
@@ -113,8 +113,8 @@ export const QRCustomizer = ({
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="additionalText">추가 설명</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="additionalText" className="text-xs">추가 설명</Label>
                   <Input
                     id="additionalText"
                     placeholder="예: Free WiFi Available"
@@ -123,8 +123,8 @@ export const QRCustomizer = ({
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="otherText">기타 문구</Label>
+                <div className="space-y-1">
+                  <Label htmlFor="otherText" className="text-xs">기타 문구</Label>
                   <Input
                     id="otherText"
                     placeholder="예: 스캔하여 WiFi 연결"
@@ -133,8 +133,8 @@ export const QRCustomizer = ({
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label>업체명/설명 폰트</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs">업체명/설명 폰트</Label>
                   <Select value={businessFont} onValueChange={onBusinessFontChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="폰트를 선택하세요" />
@@ -151,16 +151,16 @@ export const QRCustomizer = ({
                   </Select>
                 </div>
                 
-                <div className="space-y-2">
-                  <Label>업체명/설명 위치</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs">업체명/설명 위치</Label>
                   <TextPositionSelector 
                     selectedPosition={textPosition}
                     onPositionChange={onTextPositionChange}
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label>폰트 크기: {fontSize}px</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs">폰트 크기: {fontSize}px</Label>
                   <Slider
                     value={[fontSize]}
                     onValueChange={(value) => onFontSizeChange(value[0])}
@@ -171,8 +171,8 @@ export const QRCustomizer = ({
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label>폰트 굵기</Label>
+                <div className="space-y-1">
+                  <Label className="text-xs">폰트 굵기</Label>
                   <Select value={fontWeight} onValueChange={onFontWeightChange}>
                     <SelectTrigger>
                       <SelectValue />
@@ -187,16 +187,16 @@ export const QRCustomizer = ({
             </div>
             
             {/* WiFi 정보 섹션 */}
-            <div className="space-y-6 p-4 border rounded-lg">
+            <div className="space-y-4 p-3 border rounded-lg">
               <div className="flex items-center gap-2">
-                <Wifi size={20} className="text-primary" />
-                <h3 className="text-lg font-semibold">WiFi 정보</h3>
+                <Wifi size={16} className="text-primary" />
+                <h3 className="text-base font-semibold">WiFi 정보</h3>
               </div>
               
-              <div className="space-y-4">
-                <div className="space-y-2">
+              <div className="space-y-3">
+                <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Label htmlFor="showWifiInfo">WiFi 정보 표시</Label>
+                    <Label htmlFor="showWifiInfo" className="text-xs">WiFi 정보 표시</Label>
                   </div>
                   <div className="flex items-center gap-2">
                     <Switch
@@ -212,8 +212,8 @@ export const QRCustomizer = ({
                 
                 {showWifiInfo && (
                   <>
-                    <div className="space-y-2">
-                      <Label>WiFi 정보 폰트</Label>
+                    <div className="space-y-1">
+                      <Label className="text-xs">WiFi 정보 폰트</Label>
                       <Select value={wifiInfoFont} onValueChange={onWifiInfoFontChange}>
                         <SelectTrigger>
                           <SelectValue placeholder="폰트를 선택하세요" />
@@ -230,8 +230,8 @@ export const QRCustomizer = ({
                       </Select>
                     </div>
                     
-                    <div className="space-y-2">
-                      <Label>WiFi 정보 위치</Label>
+                    <div className="space-y-1">
+                      <Label className="text-xs">WiFi 정보 위치</Label>
                       <TextPositionSelector 
                         selectedPosition={wifiInfoPosition}
                         onPositionChange={onWifiInfoPositionChange}
