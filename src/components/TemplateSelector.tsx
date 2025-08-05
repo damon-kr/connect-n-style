@@ -36,8 +36,8 @@ export const TemplateSelector = ({ selectedTemplate, onTemplateSelect, printSize
             생성된 AI 템플릿 또는 기본 템플릿을 선택해주세요
           </p>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <CardContent className="p-3">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {allTemplates.map((template) => {
               const isSelected = selectedTemplate?.id === template.id;
               
@@ -45,8 +45,8 @@ export const TemplateSelector = ({ selectedTemplate, onTemplateSelect, printSize
                 <Card 
                   key={template.id} 
                   className={cn(
-                    "cursor-pointer transition-all duration-200 hover:scale-105 relative overflow-hidden",
-                    isSelected ? "ring-2 ring-primary ring-offset-2" : ""
+                    "cursor-pointer transition-all duration-200 hover:scale-[1.02] relative overflow-hidden",
+                    isSelected ? "ring-2 ring-primary ring-offset-1" : ""
                   )}
                   onClick={() => onTemplateSelect(template)}
                   style={{
@@ -57,12 +57,12 @@ export const TemplateSelector = ({ selectedTemplate, onTemplateSelect, printSize
                     borderRadius: template.borderStyle === 'rounded' ? '12px' : '8px'
                   }}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex flex-col items-center space-y-3">
+                  <CardContent className="p-2">
+                    <div className="flex flex-col items-center space-y-2">
                       {/* QR 패턴 미리보기 */}
-                      <div className="relative w-16 h-16 flex items-center justify-center">
+                      <div className="relative w-12 h-12 flex items-center justify-center">
                         <div 
-                          className="grid grid-cols-5 gap-0.5 w-12 h-12"
+                          className="grid grid-cols-5 gap-0.5 w-10 h-10"
                         >
                           {Array.from({ length: 25 }).map((_, i) => (
                             <div
@@ -76,18 +76,18 @@ export const TemplateSelector = ({ selectedTemplate, onTemplateSelect, printSize
                         </div>
                       </div>
                       
-                      <div className="text-center">
-                        <h4 className="font-medium text-sm" style={{ color: template.textColor }}>
+                      <div className="text-center space-y-1">
+                        <h4 className="font-medium text-xs leading-tight truncate max-w-full" style={{ color: template.textColor }}>
                           {template.name}
                         </h4>
-                        <p className="text-xs mt-1" style={{ color: template.accentColor }}>
+                        <p className="text-[10px] leading-tight truncate max-w-full" style={{ color: template.accentColor }}>
                           {template.description}
                         </p>
                       </div>
                       
                       {isSelected && (
-                        <div className="absolute top-2 right-2">
-                          <CheckCircle className="text-primary bg-white rounded-full" size={20} />
+                        <div className="absolute top-1 right-1">
+                          <CheckCircle className="text-primary bg-white rounded-full" size={16} />
                         </div>
                       )}
                     </div>

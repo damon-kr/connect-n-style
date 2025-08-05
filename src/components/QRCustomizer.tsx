@@ -93,16 +93,16 @@ export const QRCustomizer = ({
           텍스트 커스터마이징
         </CardTitle>
       </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <CardContent className="p-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {/* 업체명 및 부가설명 섹션 */}
-            <div className="space-y-4 p-3 border rounded-lg">
+            <div className="space-y-3 p-2 border rounded-lg">
               <div className="flex items-center gap-2">
-                <Type size={16} className="text-primary" />
-                <h3 className="text-base font-semibold">업체명 & 부가설명</h3>
+                <Type size={14} className="text-primary" />
+                <h3 className="text-sm font-semibold">업체명 & 부가설명</h3>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="space-y-1">
                   <Label htmlFor="businessName" className="text-xs">업체명 또는 타이틀</Label>
                   <Input
@@ -110,6 +110,7 @@ export const QRCustomizer = ({
                     placeholder="예: 스타벅스 강남점"
                     value={businessName}
                     onChange={(e) => onBusinessNameChange(e.target.value)}
+                    className="text-xs"
                   />
                 </div>
                 
@@ -120,6 +121,7 @@ export const QRCustomizer = ({
                     placeholder="예: Free WiFi Available"
                     value={additionalText}
                     onChange={(e) => onAdditionalTextChange(e.target.value)}
+                    className="text-xs"
                   />
                 </div>
                 
@@ -130,19 +132,20 @@ export const QRCustomizer = ({
                     placeholder="예: 스캔하여 WiFi 연결"
                     value={otherText}
                     onChange={(e) => onOtherTextChange(e.target.value)}
+                    className="text-xs"
                   />
                 </div>
                 
                 <div className="space-y-1">
                   <Label className="text-xs">업체명/설명 폰트</Label>
                   <Select value={businessFont} onValueChange={onBusinessFontChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="폰트를 선택하세요" />
+                    <SelectTrigger className="text-xs">
+                      <SelectValue placeholder="폰트 선택" />
                     </SelectTrigger>
                     <SelectContent>
                       {fonts.map((font) => (
-                        <SelectItem key={font.id} value={font.id}>
-                          <span style={{ fontFamily: font.fontFamily }}>
+                        <SelectItem key={font.id} value={font.id} className="text-xs">
+                          <span style={{ fontFamily: font.fontFamily }} className="truncate">
                             {font.name}
                           </span>
                         </SelectItem>
@@ -174,12 +177,12 @@ export const QRCustomizer = ({
                 <div className="space-y-1">
                   <Label className="text-xs">폰트 굵기</Label>
                   <Select value={fontWeight} onValueChange={onFontWeightChange}>
-                    <SelectTrigger>
+                    <SelectTrigger className="text-xs">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="normal">일반</SelectItem>
-                      <SelectItem value="bold">굵게</SelectItem>
+                      <SelectItem value="normal" className="text-xs">일반</SelectItem>
+                      <SelectItem value="bold" className="text-xs">굵게</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -187,13 +190,13 @@ export const QRCustomizer = ({
             </div>
             
             {/* WiFi 정보 섹션 */}
-            <div className="space-y-4 p-3 border rounded-lg">
+            <div className="space-y-3 p-2 border rounded-lg">
               <div className="flex items-center gap-2">
-                <Wifi size={16} className="text-primary" />
-                <h3 className="text-base font-semibold">WiFi 정보</h3>
+                <Wifi size={14} className="text-primary" />
+                <h3 className="text-sm font-semibold">WiFi 정보</h3>
               </div>
               
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Label htmlFor="showWifiInfo" className="text-xs">WiFi 정보 표시</Label>
@@ -204,7 +207,7 @@ export const QRCustomizer = ({
                       checked={showWifiInfo}
                       onCheckedChange={onShowWifiInfoChange}
                     />
-                    <span className="text-sm text-muted-foreground">
+                    <span className="text-xs text-muted-foreground leading-tight">
                       네트워크 이름과 비밀번호 표시
                     </span>
                   </div>
@@ -215,13 +218,13 @@ export const QRCustomizer = ({
                     <div className="space-y-1">
                       <Label className="text-xs">WiFi 정보 폰트</Label>
                       <Select value={wifiInfoFont} onValueChange={onWifiInfoFontChange}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="폰트를 선택하세요" />
+                        <SelectTrigger className="text-xs">
+                          <SelectValue placeholder="폰트 선택" />
                         </SelectTrigger>
                         <SelectContent>
                           {fonts.map((font) => (
-                            <SelectItem key={font.id} value={font.id}>
-                              <span style={{ fontFamily: font.fontFamily }}>
+                            <SelectItem key={font.id} value={font.id} className="text-xs">
+                              <span style={{ fontFamily: font.fontFamily }} className="truncate">
                                 {font.name}
                               </span>
                             </SelectItem>
@@ -241,11 +244,11 @@ export const QRCustomizer = ({
                 )}
               </div>
               
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm text-muted-foreground mb-2">
+              <div className="p-2 bg-muted/50 rounded-lg">
+                <p className="text-xs text-muted-foreground mb-1">
                   💡 <strong>커스터마이징 팁</strong>
                 </p>
-                <ul className="text-xs text-muted-foreground space-y-1">
+                <ul className="text-[10px] text-muted-foreground space-y-0.5 leading-tight">
                   <li>• 업체명과 WiFi 정보의 위치를 각각 설정할 수 있습니다</li>
                   <li>• 각 영역마다 다른 폰트를 사용해서 강조 효과를 줄 수 있습니다</li>
                   <li>• WiFi 정보 표시를 끄면 업체명만 표시됩니다</li>

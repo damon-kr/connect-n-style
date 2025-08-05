@@ -523,21 +523,20 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
           />
           
           {/* QR Generation Button */}
-          <div className="pt-4 border-t">
+          <div className="pt-3 border-t">
             <Button 
               onClick={handleGenerateQR} 
               disabled={!template || !config.ssid || !printSize || isGenerating}
-              className="w-full h-12 text-base font-medium"
-              size="lg"
+              className="w-full h-10 text-sm font-medium"
             >
               {isGenerating ? (
                 <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-current border-t-transparent mr-2" />
+                  <div className="animate-spin rounded-full h-3 w-3 border-2 border-current border-t-transparent mr-2" />
                   QR 코드 생성 중...
                 </>
               ) : (
                 <>
-                  <QrCode size={20} className="mr-2" />
+                  <QrCode size={16} className="mr-2" />
                   {isQRGenerated ? 'QR 코드 다시 생성하기' : 'QR 코드 생성하기'}
                 </>
               )}
@@ -548,35 +547,35 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
       {/* Preview with Mode Toggle */}
       <Card>
-        <CardHeader className="pb-4">
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Eye size={20} />
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Eye size={14} />
               미리보기
             </CardTitle>
             
             <Tabs value={isEditMode ? "edit" : "preview"} onValueChange={(value) => setIsEditMode(value === "edit")} className="w-auto">
-              <TabsList className="grid w-fit grid-cols-2">
-                <TabsTrigger value="preview" className="text-xs px-3">
-                  <Eye size={14} className="mr-1" />
+              <TabsList className="grid w-fit grid-cols-2 h-7">
+                <TabsTrigger value="preview" className="text-xs px-2 h-6">
+                  <Eye size={12} className="mr-1" />
                   미리보기
                 </TabsTrigger>
-                <TabsTrigger value="edit" className="text-xs px-3">
-                  <Move size={14} className="mr-1" />
+                <TabsTrigger value="edit" className="text-xs px-2 h-6">
+                  <Move size={12} className="mr-1" />
                   위치 및 크기 수정
                 </TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-3">
           {qrImage && printSize ? (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {/* Reset Layout Button for Edit Mode */}
               {isEditMode && (
                 <div className="flex justify-end">
-                  <Button variant="outline" size="sm" onClick={resetLayout}>
-                    <RotateCcw size={16} className="mr-2" />
+                  <Button variant="outline" size="sm" onClick={resetLayout} className="h-7 text-xs">
+                    <RotateCcw size={12} className="mr-1" />
                     레이아웃 초기화
                   </Button>
                 </div>
@@ -585,12 +584,13 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
               {/* Preview Container */}
               <div 
                 ref={previewRef}
-                className={`relative bg-white border-2 border-dashed border-gray-300 mx-auto overflow-hidden ${
+                className={`relative bg-white border-2 border-dashed border-gray-300 mx-auto overflow-hidden w-full max-w-full ${
                   isEditMode ? 'cursor-crosshair' : ''
                 }`}
                 style={{
-                  width: `${Math.min(400, printSize.width)}px`,
-                  height: `${Math.min(400, printSize.height * (Math.min(400, printSize.width) / printSize.width))}px`,
+                  width: '100%',
+                  maxWidth: `min(100vw - 3rem, 400px)`,
+                  height: `${Math.min(300, printSize.height * (Math.min(window.innerWidth - 48, 400) / printSize.width))}px`,
                   aspectRatio: `${printSize.width} / ${printSize.height}`
                 }}
                 onMouseMove={handleMouseMove}
@@ -695,14 +695,13 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
               </div>
               
               {/* Download Buttons */}
-              <div className="flex flex-col sm:flex-row gap-3 pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3">
                 <Button 
                   onClick={handleDownload} 
                   disabled={!qrImage}
-                  className="flex-1 h-12"
-                  size="lg"
+                  className="h-8 text-xs"
                 >
-                  <Download size={20} className="mr-2" />
+                  <Download size={12} className="mr-1" />
                   PNG 다운로드
                 </Button>
                 
@@ -710,10 +709,9 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                   onClick={handlePDFExport} 
                   disabled={!qrImage}
                   variant="outline"
-                  className="flex-1 h-12"
-                  size="lg"
+                  className="h-8 text-xs"
                 >
-                  <FileText size={20} className="mr-2" />
+                  <FileText size={12} className="mr-1" />
                   PDF 다운로드
                 </Button>
                 
@@ -721,10 +719,9 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                   onClick={() => onShare(qrImage || undefined)} 
                   disabled={!qrImage}
                   variant="outline"
-                  className="flex-1 h-12"
-                  size="lg"
+                  className="h-8 text-xs"
                 >
-                  <Share2 size={20} className="mr-2" />
+                  <Share2 size={12} className="mr-1" />
                   공유하기
                 </Button>
               </div>
