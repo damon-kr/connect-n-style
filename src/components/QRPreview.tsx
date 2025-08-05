@@ -265,28 +265,61 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       if (template.aiGeneratedBackground) {
         const bgImg = new Image();
         bgImg.onload = () => {
-          // AI 배경 이미지를 캔버스 전체에 그리기
-          ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+          // AI 배경 이미지를 캔버스 전체에 그리기 (aspect ratio 유지)
+          const bgAspectRatio = bgImg.width / bgImg.height;
+          const canvasAspectRatio = canvas.width / canvas.height;
           
-          // QR Code
+          let drawWidth = canvas.width;
+          let drawHeight = canvas.height;
+          let offsetX = 0;
+          let offsetY = 0;
+          
+          if (bgAspectRatio > canvasAspectRatio) {
+            // 배경이 더 가로로 긴 경우
+            drawHeight = canvas.height;
+            drawWidth = drawHeight * bgAspectRatio;
+            offsetX = (canvas.width - drawWidth) / 2;
+          } else {
+            // 배경이 더 세로로 긴 경우
+            drawWidth = canvas.width;
+            drawHeight = drawWidth / bgAspectRatio;
+            offsetY = (canvas.height - drawHeight) / 2;
+          }
+          
+          ctx.drawImage(bgImg, offsetX, offsetY, drawWidth, drawHeight);
+          
+          // QR Code with background for better visibility
           const img = new Image();
           img.onload = () => {
             const qrElement = elements.find(el => el.id === 'qr');
             if (qrElement) {
+              // QR 코드 배경 (흰색 배경으로 가독성 향상)
+              ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+              ctx.fillRect(qrElement.x - 10, qrElement.y - 10, qrElement.width + 20, qrElement.height + 20);
+              
+              // QR 코드 그리기
               ctx.drawImage(img, qrElement.x, qrElement.y, qrElement.width, qrElement.height);
             }
             
-            // Text elements
+            // Text elements with enhanced visibility
             elements.forEach(element => {
               if (element.element.type !== 'qr' && 'visible' in element.element && element.element.visible) {
                 const textEl = element.element as TextElement;
+                
+                // 텍스트 배경 (가독성을 위한 반투명 배경)
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                ctx.fillRect(element.x - 8, element.y - 5, element.width + 16, element.height + 10);
+                
+                // 텍스트 테두리 (더 나은 가독성)
+                ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(element.x - 8, element.y - 5, element.width + 16, element.height + 10);
+                
+                // 텍스트 그리기
                 ctx.font = `${textEl.fontWeight} ${textEl.fontSize}px ${textEl.fontFamily}`;
                 ctx.fillStyle = textEl.color;
                 ctx.textAlign = 'center';
-                // 텍스트 배경을 위한 반투명 박스
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                ctx.fillRect(element.x - 5, element.y - 5, element.width + 10, element.height + 10);
-                ctx.fillStyle = textEl.color;
+                ctx.textBaseline = 'middle';
                 ctx.fillText(textEl.text, element.x + element.width / 2, element.y + element.height / 2);
               }
             });

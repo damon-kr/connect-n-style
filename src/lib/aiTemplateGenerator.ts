@@ -3,26 +3,28 @@ import { AIGeneratedTemplate } from "@/types/wifi";
 export type LayoutType = 'vertical_centered' | 'horizontal_split' | 'top_heavy' | 'bottom_heavy' | 'tag_style';
 export type CategoryType = 'minimal_business' | 'cafe_vintage' | 'modern_bold' | 'friendly_colorful';
 
-// AI 프롬프트 생성 함수 - 더 구체적이고 디테일한 프롬프트
+// AI 프롬프트 생성 함수 - 실제 비즈니스 카드 수준의 디테일한 프롬프트
 export const buildTemplatePrompt = (category: CategoryType, layout: LayoutType): string => {
   const categoryPrompts = {
-    minimal_business: "Professional WiFi QR code card design, pristine white background (#ffffff), navy blue accents (#1e3a8a) limited to 15% coverage for ink savings, clean sans-serif typography (Helvetica/Arial), subtle 1pt border, minimalist corporate aesthetic, high contrast for readability, printer-friendly design",
-    cafe_vintage: "Vintage coffee shop WiFi card design, warm cream background (#faf7f0), sepia brown tones (#8b4513) for cost-effective printing, hand-drawn coffee bean border illustrations, elegant script 'WiFi' lettering, decorative vintage ornaments, antique paper texture, warm typography hierarchy, ink-efficient color palette",
-    modern_bold: "Contemporary WiFi card design, white base (#ffffff) with electric blue accent (#0066ff) used sparingly, geometric line patterns instead of filled shapes, bold sans-serif typography (Roboto/Montserrat), clean angular borders, high-contrast design optimized for laser printing, minimal ink usage, professional tech aesthetic",
-    friendly_colorful: "Family-friendly WiFi card design, soft white background (#ffffff) with cheerful accent colors (#ff6b6b, #4ecdc4) used minimally, simple line-art icons instead of filled illustrations, rounded corner borders, readable sans-serif fonts, welcoming design optimized for home printing, cost-effective color distribution"
+    minimal_business: "Professional business card design for WiFi access, clean white background with elegant navy blue (#1e3a8a) accent elements, sophisticated corporate typography using Helvetica/Arial font family, minimalist geometric border design, subtle company logo placeholder area, premium business card aesthetic with high-end printing quality, professional office environment suitable",
+    cafe_vintage: "Vintage coffee shop WiFi access card, warm cream/beige background (#f5f5dc), hand-lettered script font for 'WiFi' title, decorative coffee bean illustrations as border ornaments, vintage cafe atmosphere with steam wisps, rustic wooden texture elements, antique paper aging effect, warm sepia brown color palette (#8b4513), artisanal coffee shop branding style",
+    modern_bold: "Contemporary tech-forward WiFi card design, pristine white base with electric blue (#0066ff) geometric accent lines, ultra-modern sans-serif typography (Roboto/Montserrat style), angular geometric patterns, sleek tech company branding, minimalist Scandinavian design influence, clean architectural lines, high-tech corporate aesthetic",
+    friendly_colorful: "Welcoming family-friendly WiFi card, soft pastel background with cheerful rainbow accent colors (#ff6b6b coral, #4ecdc4 turquoise), playful rounded typography, simple line-art icons (heart, smile, home), warm welcoming atmosphere, child-friendly design elements, cozy home/cafe environment, approachable community feeling"
   };
 
   const layoutPrompts = {
-    vertical_centered: "centered vertical layout with 'WiFi' title at top, QR code prominently in center, network details below, balanced composition",
-    horizontal_split: "split horizontal layout with decorative text area on left third, large QR code positioned on right two-thirds, professional business card proportion",
-    top_heavy: "top-emphasized layout with large branded header section taking upper 40%, QR code and details in compact lower section",
-    bottom_heavy: "bottom-weighted design with compact QR code in upper area, expansive decorative footer with network information and styling elements",
-    tag_style: "hanging tag format with punched hole at top center, vertical flow from hole to QR to text, authentic luggage tag proportions"
+    vertical_centered: "vertical business card layout: elegant 'WiFi' title at top center, spacious middle area reserved for QR code placement, network information section at bottom, symmetrical balanced composition, plenty of white space for readability",
+    horizontal_split: "horizontal business card format: decorative branded left section (1/3 width) with ornamental elements and WiFi title, large right section (2/3 width) designated for QR code and network details, professional landscape orientation",
+    top_heavy: "top-weighted design layout: substantial header section occupying upper 40% with branding and decorative elements, compressed lower area for QR code and essential information, authoritative business card hierarchy",
+    bottom_heavy: "bottom-emphasized layout: minimal clean upper section with small QR area, expansive decorative footer section with ornamental patterns and ample space for network information, elegant invitation card style",
+    tag_style: "hanging luggage tag format: authentic tag shape with hole punched at top center, natural vertical flow from hanging hole to QR placement to text area, realistic tag proportions and texture, practical travel tag aesthetic"
   };
 
-  const printSpecs = "print-optimized design, 300 DPI minimum resolution, 3.5x2 inch business card standard dimensions (89x51mm), CMYK color profile for professional printing, 0.125 inch (3mm) bleed margins, maximum 20% ink coverage for cost efficiency, white/neutral backgrounds preferred, high contrast text for laser printer compatibility, vector-style elements over complex gradients";
+  const printSpecs = "Ultra-high resolution print-ready design, 300 DPI minimum quality, standard business card dimensions 3.5×2 inches (89×51mm), professional CMYK color profile, proper 0.125 inch bleed margins, ink-efficient color usage under 20% coverage, laser printer optimized contrast ratios, commercial printing quality, vector-style graphics preferred over gradients";
 
-  return `Create a ${categoryPrompts[category]} with ${layoutPrompts[layout]}. Important printing specifications: ${printSpecs}. Ultra-high resolution, no placeholder text, professional business card quality, ready for immediate commercial printing.`;
+  const designDetails = "Include realistic business card details: subtle drop shadows, professional typography hierarchy, appropriate negative space usage, authentic material textures (paper, cardstock), realistic lighting and depth, commercial print production ready, NO QR code in the design (QR will be added separately), focus on background design and text layout areas only";
+
+  return `Create a ${categoryPrompts[category]} with ${layoutPrompts[layout]}. ${printSpecs}. ${designDetails}. Design should look like a real professional business card you'd receive at a high-end establishment.`;
 };
 
 // AI 이미지 생성 함수 (실제 OpenAI API 사용)
@@ -101,6 +103,20 @@ export const generateAITemplate = async (
   return template;
 };
 
+// 프롬프트에 변화를 주어 다양한 이미지 생성
+const addPromptVariation = (basePrompt: string, variationIndex: number): string => {
+  const variations = [
+    'elegant and sophisticated style',
+    'warm and inviting atmosphere', 
+    'modern minimalist approach',
+    'creative artistic flair',
+    'premium luxury feel'
+  ];
+  
+  const currentVariation = variations[variationIndex % variations.length];
+  return `${basePrompt}. Additional style guidance: ${currentVariation}, unique visual elements, distinctive design character.`;
+};
+
 // 배치별 템플릿 생성
 export const generateTemplatesBatch = async (
   category: CategoryType,
@@ -108,9 +124,11 @@ export const generateTemplatesBatch = async (
 ): Promise<AIGeneratedTemplate[]> => {
   const layouts: LayoutType[] = ['vertical_centered', 'horizontal_split', 'top_heavy', 'bottom_heavy', 'tag_style'];
   
-  const templatePromises = layouts.map(layout => 
-    generateAITemplate(category, layout, customPrompt)
-  );
+  const templatePromises = layouts.map((layout, index) => {
+    const basePrompt = customPrompt || buildTemplatePrompt(category, layout);
+    const variedPrompt = addPromptVariation(basePrompt, index);
+    return generateAITemplate(category, layout, variedPrompt);
+  });
   
   return Promise.all(templatePromises);
 };

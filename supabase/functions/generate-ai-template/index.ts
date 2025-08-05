@@ -33,12 +33,12 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        inputs: `${prompt}. Professional print quality, clean lines, high contrast, minimalist design suitable for office printing`,
+        inputs: `${prompt}. Ultra-high resolution business card design, professional commercial printing quality, clean typography hierarchy, elegant visual composition, NO QR CODE in image (will be added separately), focus on background design and layout elements only, premium business card aesthetic, realistic lighting and shadows, high-end print production ready`,
         parameters: {
           width: 1024,
-          height: 640,  // 3.5:2 business card ratio optimized
-          num_inference_steps: 8,  // Higher quality for print
-          guidance_scale: 7.5  // Better prompt adherence
+          height: 640,  // 3.5:2 business card ratio optimized for printing
+          num_inference_steps: 12,  // Higher quality for better details
+          guidance_scale: 8.0  // Better prompt adherence for professional results
         }
       }),
     });

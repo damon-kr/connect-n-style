@@ -66,19 +66,30 @@ interface AIDesignGeneratorProps {
 
 // QRTemplate으로 변환하는 함수
 const convertAITemplateToQRTemplate = (aiTemplate: AIGeneratedTemplate): QRTemplate => {
+  // 카테고리별 색상 팔레트 정의
+  const categoryColors = {
+    minimal_business: { bg: '#ffffff', accent: '#1e3a8a', text: '#000000' },
+    cafe_vintage: { bg: '#faf7f0', accent: '#8b4513', text: '#2d1810' },
+    modern_bold: { bg: '#ffffff', accent: '#0066ff', text: '#000000' },
+    friendly_colorful: { bg: '#ffffff', accent: '#ff6b6b', text: '#2d3748' }
+  };
+
+  const colors = categoryColors[aiTemplate.category];
+
   return {
     id: aiTemplate.id,
     name: aiTemplate.name,
-    description: `AI 생성 - ${aiTemplate.category.replace('_', ' ')}`,
-    backgroundColor: '#ffffff',
-    accentColor: designCategories.find(cat => cat.id === aiTemplate.category)?.color || 'hsl(var(--primary))',
-    textColor: aiTemplate.category === 'modern_bold' ? '#ffffff' : '#333333',
-    borderStyle: 'rounded',
+    description: `AI generated ${aiTemplate.category.replace('_', ' ')} style with ${aiTemplate.layoutType.replace('_', ' ')} layout`,
+    backgroundColor: colors.bg,
+    accentColor: colors.accent,
+    textColor: colors.text,
+    borderStyle: aiTemplate.layoutType === 'tag_style' ? 'rounded' : 'none',
     layout: aiTemplate.layoutType,
     qrSizeRatio: 'medium',
+    backgroundPattern: 'none',
+    decorativeElements: ['frame'],
     aiGeneratedBackground: aiTemplate.generatedImageUrl,
-    category: aiTemplate.category,
-    backgroundPattern: 'none'
+    category: aiTemplate.category
   };
 };
 
