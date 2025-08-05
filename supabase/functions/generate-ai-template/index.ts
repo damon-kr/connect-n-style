@@ -1,7 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const huggingFaceApiKey = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,42 +17,44 @@ serve(async (req) => {
   try {
     const { prompt, category, layout } = await req.json();
 
-    if (!openAIApiKey) {
+    if (!huggingFaceApiKey) {
       return new Response(
-        JSON.stringify({ error: 'OpenAI API key not configured' }),
+        JSON.stringify({ error: 'Hugging Face API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     console.log('Generating AI template with prompt:', prompt);
 
-    const response = await fetch('https://api.openai.com/v1/images/generations', {
+    const response = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
       method: 'POST', 
       headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
+        'Authorization': `Bearer ${huggingFaceApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'dall-e-3',
-        prompt: prompt,
-        n: 1,
-        size: '1024x1024',
-        quality: 'hd',
-        style: 'natural'
+        inputs: prompt,
+        parameters: {
+          width: 1024,
+          height: 1024,
+          num_inference_steps: 4
+        }
       }),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('OpenAI API error:', errorData);
+      const errorText = await response.text();
+      console.error('Hugging Face API error:', errorText);
       return new Response(
-        JSON.stringify({ error: 'Failed to generate image', details: errorData }),
+        JSON.stringify({ error: 'Failed to generate image', details: errorText }),
         { status: response.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const data = await response.json();
-    const imageUrl = data.data[0].url;
+    const imageBlob = await response.blob();
+    const arrayBuffer = await imageBlob.arrayBuffer();
+    const base64 = btoa(String.fromCharCode(...new Uint8Array(arrayBuffer)));
+    const imageUrl = `data:image/png;base64,${base64}`;
 
     console.log('AI image generated successfully:', imageUrl);
 
