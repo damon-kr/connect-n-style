@@ -4,7 +4,7 @@ import { PrintSize, PrintOrientation } from '@/types/size';
 import { WiFiForm } from '@/components/WiFiForm';
 import { PrintSizeSelector } from '@/components/PrintSizeSelector';
 import { TemplateSelector } from '@/components/TemplateSelector';
-import { QRPreview } from '@/components/QRPreview';
+import { ImprovedQRPreview } from '@/components/ImprovedQRPreview';
 import { ShareModal } from '@/components/ShareModal';
 import { AdBanner } from '@/components/AdBanner';
 import { Button } from '@/components/ui/button';
@@ -187,7 +187,7 @@ const Index = () => {
               {/* 사이드바 광고 */}
               <AdBanner position="sidebar" className="mb-4" />
               
-              <QRPreview 
+              <ImprovedQRPreview 
                 config={wifiConfig}
                 template={selectedTemplate}
                 printSize={selectedSize}

@@ -3,7 +3,7 @@ import { WiFiConfig, QRTemplate } from '@/types/wifi';
 import { PrintSize } from '@/types/size';
 import { generateQRCode } from '@/lib/qrGenerator';
 import { QRCustomizer } from '@/components/QRCustomizer';
-import { DraggableQRCanvas } from '@/components/DraggableQRCanvas';
+
 import { TextPosition, textPositions } from '@/components/TextPositionSelector';
 import { AdInterstitial } from '@/components/AdInterstitial';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
