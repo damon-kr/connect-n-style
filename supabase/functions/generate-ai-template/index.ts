@@ -27,19 +27,18 @@ serve(async (req) => {
     console.log('Generating AI template with prompt:', prompt);
 
     const response = await fetch('https://api.openai.com/v1/images/generations', {
-      method: 'POST',
+      method: 'POST', 
       headers: {
         'Authorization': `Bearer ${openAIApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: 'dall-e-3',
         prompt: prompt,
         n: 1,
         size: '1024x1024',
-        quality: 'high',
-        output_format: 'png',
-        background: 'opaque'
+        quality: 'hd',
+        style: 'natural'
       }),
     });
 
@@ -53,13 +52,14 @@ serve(async (req) => {
     }
 
     const data = await response.json();
-    const imageData = data.data[0];
+    const imageUrl = data.data[0].url;
 
-    // OpenAI gpt-image-1 returns base64 data directly
+    console.log('AI image generated successfully:', imageUrl);
+
     const generatedTemplate = {
       id: `ai-${category}-${layout}-${Date.now()}`,
       name: `AI ${category.replace('_', ' ')} - ${layout.replace('_', ' ')}`,
-      generatedImageUrl: imageData.b64_json ? `data:image/png;base64,${imageData.b64_json}` : imageData.url,
+      generatedImageUrl: imageUrl,
       layoutType: layout,
       printOptimized: true,
       category,

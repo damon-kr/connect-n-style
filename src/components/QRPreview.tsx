@@ -261,33 +261,100 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       canvas.height = printSize.height;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       
-      // Background
-      ctx.fillStyle = template.backgroundColor;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      
-      // QR Code
-      const img = new Image();
-      img.onload = () => {
-        const qrElement = elements.find(el => el.id === 'qr');
-        if (qrElement) {
-          ctx.drawImage(img, qrElement.x, qrElement.y, qrElement.width, qrElement.height);
-        }
+      // AI 생성 배경 이미지가 있는 경우 먼저 그리기
+      if (template.aiGeneratedBackground) {
+        const bgImg = new Image();
+        bgImg.onload = () => {
+          // AI 배경 이미지를 캔버스 전체에 그리기
+          ctx.drawImage(bgImg, 0, 0, canvas.width, canvas.height);
+          
+          // QR Code
+          const img = new Image();
+          img.onload = () => {
+            const qrElement = elements.find(el => el.id === 'qr');
+            if (qrElement) {
+              ctx.drawImage(img, qrElement.x, qrElement.y, qrElement.width, qrElement.height);
+            }
+            
+            // Text elements
+            elements.forEach(element => {
+              if (element.element.type !== 'qr' && 'visible' in element.element && element.element.visible) {
+                const textEl = element.element as TextElement;
+                ctx.font = `${textEl.fontWeight} ${textEl.fontSize}px ${textEl.fontFamily}`;
+                ctx.fillStyle = textEl.color;
+                ctx.textAlign = 'center';
+                // 텍스트 배경을 위한 반투명 박스
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                ctx.fillRect(element.x - 5, element.y - 5, element.width + 10, element.height + 10);
+                ctx.fillStyle = textEl.color;
+                ctx.fillText(textEl.text, element.x + element.width / 2, element.y + element.height / 2);
+              }
+            });
+            
+            resolve();
+          };
+          img.onerror = () => reject(new Error('Failed to load QR image'));
+          img.src = qrDataUrl;
+        };
+        bgImg.onerror = () => {
+          // AI 배경 로드 실패시 기본 배경 사용
+          ctx.fillStyle = template.backgroundColor;
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          
+          // QR Code
+          const img = new Image();
+          img.onload = () => {
+            const qrElement = elements.find(el => el.id === 'qr');
+            if (qrElement) {
+              ctx.drawImage(img, qrElement.x, qrElement.y, qrElement.width, qrElement.height);
+            }
+            
+            // Text elements
+            elements.forEach(element => {
+              if (element.element.type !== 'qr' && 'visible' in element.element && element.element.visible) {
+                const textEl = element.element as TextElement;
+                ctx.font = `${textEl.fontWeight} ${textEl.fontSize}px ${textEl.fontFamily}`;
+                ctx.fillStyle = textEl.color;
+                ctx.textAlign = 'center';
+                ctx.fillText(textEl.text, element.x + element.width / 2, element.y + element.height / 2);
+              }
+            });
+            
+            resolve();
+          };
+          img.onerror = () => reject(new Error('Failed to load QR image'));
+          img.src = qrDataUrl;
+        };
+        bgImg.src = template.aiGeneratedBackground;
+      } else {
+        // 기본 배경색 사용
+        ctx.fillStyle = template.backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        // Text elements
-        elements.forEach(element => {
-          if (element.element.type !== 'qr' && 'visible' in element.element && element.element.visible) {
-            const textEl = element.element as TextElement;
-            ctx.font = `${textEl.fontWeight} ${textEl.fontSize}px ${textEl.fontFamily}`;
-            ctx.fillStyle = textEl.color;
-            ctx.textAlign = 'center';
-            ctx.fillText(textEl.text, element.x + element.width / 2, element.y + element.height / 2);
+        // QR Code
+        const img = new Image();
+        img.onload = () => {
+          const qrElement = elements.find(el => el.id === 'qr');
+          if (qrElement) {
+            ctx.drawImage(img, qrElement.x, qrElement.y, qrElement.width, qrElement.height);
           }
-        });
-        
-        resolve();
-      };
-      img.onerror = () => reject(new Error('Failed to load QR image'));
-      img.src = qrDataUrl;
+          
+          // Text elements
+          elements.forEach(element => {
+            if (element.element.type !== 'qr' && 'visible' in element.element && element.element.visible) {
+              const textEl = element.element as TextElement;
+              ctx.font = `${textEl.fontWeight} ${textEl.fontSize}px ${textEl.fontFamily}`;
+              ctx.fillStyle = textEl.color;
+              ctx.textAlign = 'center';
+              ctx.fillText(textEl.text, element.x + element.width / 2, element.y + element.height / 2);
+            }
+          });
+          
+          resolve();
+        };
+        img.onerror = () => reject(new Error('Failed to load QR image'));
+        img.src = qrDataUrl;
+      }
     });
   };
 

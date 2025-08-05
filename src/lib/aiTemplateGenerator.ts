@@ -3,24 +3,26 @@ import { AIGeneratedTemplate } from "@/types/wifi";
 export type LayoutType = 'vertical_centered' | 'horizontal_split' | 'top_heavy' | 'bottom_heavy' | 'tag_style';
 export type CategoryType = 'minimal_business' | 'cafe_vintage' | 'modern_bold' | 'friendly_colorful';
 
-// AI 프롬프트 생성 함수
+// AI 프롬프트 생성 함수 - 더 구체적이고 디테일한 프롬프트
 export const buildTemplatePrompt = (category: CategoryType, layout: LayoutType): string => {
   const categoryPrompts = {
-    minimal_business: "Professional WiFi QR card template, clean white background, blue accent color, modern sans-serif typography, minimalist design, business card style",
-    cafe_vintage: "Vintage cafe WiFi QR card template, warm beige background, brown earth tones, decorative border elements, rustic texture, handwritten style fonts",
-    modern_bold: "Modern bold WiFi QR card template, high contrast colors, geometric shapes, strong typography, contemporary design, striking visual impact",
-    friendly_colorful: "Friendly colorful WiFi QR card template, bright cheerful background, rounded corners, playful colors, welcoming atmosphere, icon elements"
+    minimal_business: "Professional WiFi QR code card design, pristine white background, elegant navy blue accents (#1e3a8a), Helvetica Neue or Inter font family, ultra-clean typography, subtle shadow effects, corporate business card aesthetic, premium quality finish",
+    cafe_vintage: "Vintage coffee shop WiFi card design, warm cream parchment background (#f5f5dc), rich brown coffee tones (#8b4513), hand-drawn decorative flourishes, vintage ornamental borders, rustic coffee bean illustrations, handwritten script 'WiFi' lettering, antique typography, distressed texture overlay",
+    modern_bold: "Contemporary bold WiFi card design, high-contrast black and electric blue (#0066ff), geometric hexagonal patterns, sleek Montserrat or Roboto font, dynamic angular shapes, gradient overlays, futuristic tech aesthetic, striking visual hierarchy",
+    friendly_colorful: "Cheerful family-friendly WiFi card, soft pastel rainbow background, rounded corner design, playful sans-serif typography, cute WiFi signal icons, warm welcoming colors (#ff6b6b, #4ecdc4, #45b7d1), cartoon-style illustrations, kid-friendly atmosphere"
   };
 
   const layoutPrompts = {
-    vertical_centered: "vertical layout with QR code centered, text above and below",
-    horizontal_split: "horizontal split layout with text on left side and QR code on right side",
-    top_heavy: "top-heavy layout with large title area at top and QR code at bottom",
-    bottom_heavy: "bottom-heavy layout with QR code at top and emphasis text area at bottom",
-    tag_style: "tag style layout with hanging hole at top, vertical arrangement"
+    vertical_centered: "centered vertical layout with 'WiFi' title at top, QR code prominently in center, network details below, balanced composition",
+    horizontal_split: "split horizontal layout with decorative text area on left third, large QR code positioned on right two-thirds, professional business card proportion",
+    top_heavy: "top-emphasized layout with large branded header section taking upper 40%, QR code and details in compact lower section",
+    bottom_heavy: "bottom-weighted design with compact QR code in upper area, expansive decorative footer with network information and styling elements",
+    tag_style: "hanging tag format with punched hole at top center, vertical flow from hole to QR to text, authentic luggage tag proportions"
   };
 
-  return `${categoryPrompts[category]}, ${layoutPrompts[layout]}, print-ready design, 300 DPI resolution, high quality professional template`;
+  const printSpecs = "print-optimized design, 300 DPI resolution, 3.5x2 inch business card dimensions, CMYK color profile, 0.125 inch bleed area, ink-efficient color usage";
+
+  return `Create a ${categoryPrompts[category]} with ${layoutPrompts[layout]}. ${printSpecs}. Photorealistic quality, no placeholder text, ready for immediate use.`;
 };
 
 // AI 이미지 생성 함수 (실제 OpenAI API 사용)

@@ -57,8 +57,16 @@ export const TemplateSelector = ({ selectedTemplate, onTemplateSelect, printSize
                     borderRadius: template.borderStyle === 'rounded' ? '12px' : '8px'
                   }}
                 >
-                  <CardContent className="p-2">
-                    <div className="flex flex-col items-center space-y-2">
+                  <CardContent className="p-2 relative">
+                    {/* AI 생성 이미지가 있는 경우 배경으로 표시 */}
+                    {template.aiGeneratedBackground && (
+                      <div 
+                        className="absolute inset-0 bg-cover bg-center bg-no-repeat rounded-lg opacity-90"
+                        style={{ backgroundImage: `url(${template.aiGeneratedBackground})` }}
+                      />
+                    )}
+                    
+                    <div className="flex flex-col items-center space-y-2 relative z-10">
                       {/* QR 패턴 미리보기 */}
                       <div className="relative w-12 h-12 flex items-center justify-center">
                         <div 
@@ -77,10 +85,10 @@ export const TemplateSelector = ({ selectedTemplate, onTemplateSelect, printSize
                       </div>
                       
                       <div className="text-center space-y-1">
-                        <h4 className="font-medium text-xs leading-tight truncate max-w-full" style={{ color: template.textColor }}>
+                        <h4 className="font-medium text-xs leading-tight truncate max-w-full bg-white/90 px-1 rounded" style={{ color: template.textColor }}>
                           {template.name}
                         </h4>
-                        <p className="text-[10px] leading-tight truncate max-w-full" style={{ color: template.accentColor }}>
+                        <p className="text-[10px] leading-tight truncate max-w-full bg-white/80 px-1 rounded" style={{ color: template.accentColor }}>
                           {template.description}
                         </p>
                       </div>
