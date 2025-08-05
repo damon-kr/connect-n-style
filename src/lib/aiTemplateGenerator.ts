@@ -6,10 +6,10 @@ export type CategoryType = 'minimal_business' | 'cafe_vintage' | 'modern_bold' |
 // AI 프롬프트 생성 함수 - 더 구체적이고 디테일한 프롬프트
 export const buildTemplatePrompt = (category: CategoryType, layout: LayoutType): string => {
   const categoryPrompts = {
-    minimal_business: "Professional WiFi QR code card design, pristine white background, elegant navy blue accents (#1e3a8a), Helvetica Neue or Inter font family, ultra-clean typography, subtle shadow effects, corporate business card aesthetic, premium quality finish",
-    cafe_vintage: "Vintage coffee shop WiFi card design, warm cream parchment background (#f5f5dc), rich brown coffee tones (#8b4513), hand-drawn decorative flourishes, vintage ornamental borders, rustic coffee bean illustrations, handwritten script 'WiFi' lettering, antique typography, distressed texture overlay",
-    modern_bold: "Contemporary bold WiFi card design, high-contrast black and electric blue (#0066ff), geometric hexagonal patterns, sleek Montserrat or Roboto font, dynamic angular shapes, gradient overlays, futuristic tech aesthetic, striking visual hierarchy",
-    friendly_colorful: "Cheerful family-friendly WiFi card, soft pastel rainbow background, rounded corner design, playful sans-serif typography, cute WiFi signal icons, warm welcoming colors (#ff6b6b, #4ecdc4, #45b7d1), cartoon-style illustrations, kid-friendly atmosphere"
+    minimal_business: "Professional WiFi QR code card design, pristine white background (#ffffff), navy blue accents (#1e3a8a) limited to 15% coverage for ink savings, clean sans-serif typography (Helvetica/Arial), subtle 1pt border, minimalist corporate aesthetic, high contrast for readability, printer-friendly design",
+    cafe_vintage: "Vintage coffee shop WiFi card design, warm cream background (#faf7f0), sepia brown tones (#8b4513) for cost-effective printing, hand-drawn coffee bean border illustrations, elegant script 'WiFi' lettering, decorative vintage ornaments, antique paper texture, warm typography hierarchy, ink-efficient color palette",
+    modern_bold: "Contemporary WiFi card design, white base (#ffffff) with electric blue accent (#0066ff) used sparingly, geometric line patterns instead of filled shapes, bold sans-serif typography (Roboto/Montserrat), clean angular borders, high-contrast design optimized for laser printing, minimal ink usage, professional tech aesthetic",
+    friendly_colorful: "Family-friendly WiFi card design, soft white background (#ffffff) with cheerful accent colors (#ff6b6b, #4ecdc4) used minimally, simple line-art icons instead of filled illustrations, rounded corner borders, readable sans-serif fonts, welcoming design optimized for home printing, cost-effective color distribution"
   };
 
   const layoutPrompts = {
@@ -20,9 +20,9 @@ export const buildTemplatePrompt = (category: CategoryType, layout: LayoutType):
     tag_style: "hanging tag format with punched hole at top center, vertical flow from hole to QR to text, authentic luggage tag proportions"
   };
 
-  const printSpecs = "print-optimized design, 300 DPI resolution, 3.5x2 inch business card dimensions, CMYK color profile, 0.125 inch bleed area, ink-efficient color usage";
+  const printSpecs = "print-optimized design, 300 DPI minimum resolution, 3.5x2 inch business card standard dimensions (89x51mm), CMYK color profile for professional printing, 0.125 inch (3mm) bleed margins, maximum 20% ink coverage for cost efficiency, white/neutral backgrounds preferred, high contrast text for laser printer compatibility, vector-style elements over complex gradients";
 
-  return `Create a ${categoryPrompts[category]} with ${layoutPrompts[layout]}. ${printSpecs}. Photorealistic quality, no placeholder text, ready for immediate use.`;
+  return `Create a ${categoryPrompts[category]} with ${layoutPrompts[layout]}. Important printing specifications: ${printSpecs}. Ultra-high resolution, no placeholder text, professional business card quality, ready for immediate commercial printing.`;
 };
 
 // AI 이미지 생성 함수 (실제 OpenAI API 사용)

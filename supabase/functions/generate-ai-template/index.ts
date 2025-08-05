@@ -33,11 +33,12 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        inputs: prompt,
+        inputs: `${prompt}. Professional print quality, clean lines, high contrast, minimalist design suitable for office printing`,
         parameters: {
           width: 1024,
-          height: 1024,
-          num_inference_steps: 4
+          height: 640,  // 3.5:2 business card ratio optimized
+          num_inference_steps: 8,  // Higher quality for print
+          guidance_scale: 7.5  // Better prompt adherence
         }
       }),
     });
