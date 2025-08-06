@@ -708,14 +708,9 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                       className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                       style={{ 
                         backgroundImage: `url(${template.aiGeneratedBackground})`,
-                        filter: 'brightness(0.95) contrast(1.05)'
+                        filter: 'brightness(1.0) contrast(1.1)'
                       }}
                     />
-                  )}
-                  
-                  {/* 반투명 오버레이로 텍스트 가독성 향상 */}
-                  {template?.aiGeneratedBackground && (
-                    <div className="absolute inset-0 bg-black/10" />
                   )}
                 </div>
                 
@@ -735,11 +730,12 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                     onMouseDown={(e) => handleMouseDown(e, 'qr', 'drag')}
                   >
                     <div 
-                      className="w-full h-full p-1 rounded-lg"
+                      className="w-full h-full p-2 rounded-xl"
                       style={{
-                        background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.95)' : 'transparent',
-                        backdropFilter: template?.aiGeneratedBackground ? 'blur(8px)' : 'none',
-                        boxShadow: template?.aiGeneratedBackground ? '0 4px 12px rgba(0,0,0,0.3)' : 'none'
+                        background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.98)' : 'transparent',
+                        backdropFilter: template?.aiGeneratedBackground ? 'blur(12px)' : 'none',
+                        boxShadow: template?.aiGeneratedBackground ? '0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.3)' : 'none',
+                        border: template?.aiGeneratedBackground ? '1px solid rgba(255,255,255,0.2)' : 'none'
                       }}
                     >
                       <img 
@@ -786,20 +782,20 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                         width: `${element.width * (Math.min(400, printSize.width) / printSize.width)}px`,
                         height: `${element.height * (Math.min(400, printSize.width) / printSize.width)}px`,
                         fontSize: `${textEl.fontSize * (Math.min(400, printSize.width) / printSize.width)}px`,
-                        fontFamily: textEl.fontFamily,
+                        fontFamily: template?.structure?.fontFamily || textEl.fontFamily,
                         fontWeight: textEl.fontWeight,
-                        color: template?.aiGeneratedBackground ? 'white' : textEl.color,
+                        color: template?.structure?.colors?.text || (template?.aiGeneratedBackground ? '#ffffff' : textEl.color),
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        textAlign: 'center',
+                        textAlign: template?.structure?.textAlign || 'center',
                         lineHeight: '1.2',
                         zIndex: 20,
-                        background: template?.aiGeneratedBackground ? 'rgba(0,0,0,0.4)' : 'transparent',
-                        padding: template?.aiGeneratedBackground ? '4px 8px' : '0',
+                        background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.95)' : 'transparent',
+                        padding: template?.aiGeneratedBackground ? '8px 12px' : '0',
                         borderRadius: template?.aiGeneratedBackground ? '8px' : '0',
-                        backdropFilter: template?.aiGeneratedBackground ? 'blur(6px)' : 'none',
-                        textShadow: template?.aiGeneratedBackground ? '1px 1px 3px rgba(0,0,0,0.8)' : 'none'
+                        backdropFilter: template?.aiGeneratedBackground ? 'blur(8px)' : 'none',
+                        boxShadow: template?.aiGeneratedBackground ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
                       }}
                       onMouseDown={(e) => handleMouseDown(e, element.id, 'drag')}
                     >

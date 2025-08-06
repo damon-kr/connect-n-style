@@ -1,31 +1,14 @@
-import { AIGeneratedTemplate } from "@/types/wifi";
+import { AIGeneratedTemplate, TemplateStructure } from "@/types/wifi";
 import { supabase } from "@/integrations/supabase/client";
+import { templateStructures, generateConceptPrompt } from "./templateStructures";
 
 export type LayoutType = 'vertical_centered' | 'horizontal_split' | 'top_heavy' | 'bottom_heavy' | 'tag_style';
-export type CategoryType = 'minimal_business' | 'cafe_vintage' | 'modern_bold' | 'friendly_colorful';
+export type CategoryType = 'minimal_business' | 'cafe_vintage' | 'modern_bold' | 'friendly_colorful' | 'hospital_clean' | 'restaurant_elegant' | 'tag_style';
 
-// AI 프롬프트 생성 함수 - 실제 비즈니스 카드 수준의 디테일한 프롬프트
+// 컨셉별 구조 기반 AI 프롬프트 생성
 export const buildTemplatePrompt = (category: CategoryType, layout: LayoutType): string => {
-  const categoryPrompts = {
-    minimal_business: "Professional minimalist WiFi access business card, clean white background with subtle navy blue (#1e3a8a) accents, modern sans-serif typography (Helvetica/Arial), elegant geometric line borders, simple 'Free WiFi' text in header, sophisticated corporate branding style, premium matte cardstock texture, high-end office environment aesthetic, subtle drop shadows, 300 DPI print quality",
-    cafe_vintage: "Vintage coffee shop WiFi access card design, warm cream/beige (#f5f5dc) aged paper background, hand-lettered script calligraphy font for 'Free WiFi' title, decorative coffee bean border illustrations, steaming coffee cup silhouette, rustic burlap texture overlay, antique sepia brown (#8b4513) color palette, aged paper effect with coffee stains, artisanal cafe branding with vintage typography",
-    modern_bold: "Contemporary tech-forward WiFi card, pristine white base with electric blue (#0066ff) gradient accent lines, ultra-modern geometric sans-serif typography (Roboto/Montserrat style), angular tech patterns, bold 'WiFi Access' header, sleek minimalist Scandinavian design, clean architectural lines, high-contrast color blocking, futuristic corporate tech aesthetic, laser-cut precision edges",
-    friendly_colorful: "Welcoming family-friendly WiFi card, soft pastel gradient background with cheerful colors (#ff6b6b coral, #4ecdc4 turquoise, #ffd93d yellow), playful rounded bubble typography, cute line-art icons (heart, smile, home, wifi symbol), warm cozy atmosphere, child-friendly design elements with rounded corners, community cafe feeling, hand-drawn illustration style, welcoming neighborhood aesthetic"
-  };
-
-  const layoutPrompts = {
-    vertical_centered: "vertical business card layout (portrait orientation): elegant decorative 'Free WiFi' title at top center with ornamental flourishes, spacious middle section reserved for QR code placement with frame border, network information text area at bottom with elegant typography, symmetrical balanced composition with ample white space margins",
-    horizontal_split: "horizontal business card format (landscape orientation): decorative branded left section (30% width) with ornamental design elements and stylized 'WiFi Access' title, large right section (70% width) designated for central QR code and network details below, professional landscape business card proportions",
-    top_heavy: "top-weighted design layout: substantial decorative header section occupying upper 45% with beautiful branding elements and large 'Free WiFi' title, compressed lower area with central QR code and essential network information, elegant invitation card hierarchy with ornamental borders",
-    bottom_heavy: "bottom-emphasized layout: minimal clean upper section with centered QR code area, expansive decorative footer section with ornamental patterns and stylized network information display, elegant formal card style with decorative bottom border elements",
-    tag_style: "hanging luggage tag format: authentic tag shape with reinforced hole punched at top center, natural vertical information flow from hanging hole to 'WiFi Access' title to central QR code area to network details, realistic cardstock tag proportions with rounded corners, practical travel tag aesthetic with string hole"
-  };
-
-  const printSpecs = "Ultra-high resolution print-ready design, 300 DPI minimum quality, standard business card dimensions 3.5×2 inches (89×51mm), professional CMYK color profile, proper 0.125 inch bleed margins, ink-efficient color usage under 20% coverage, laser printer optimized contrast ratios, commercial printing quality, vector-style graphics preferred over gradients";
-
-  const designDetails = "Include realistic business card details: subtle drop shadows, professional typography hierarchy, appropriate negative space usage, authentic material textures (paper, cardstock), realistic lighting and depth, commercial print production ready, NO QR code in the design (QR will be added separately), focus on background design and text layout areas only";
-
-  return `Create a ${categoryPrompts[category]} with ${layoutPrompts[layout]}. ${printSpecs}. ${designDetails}. Design should look like a real professional business card you'd receive at a high-end establishment.`;
+  const structure = templateStructures[category] || templateStructures.minimal_business;
+  return generateConceptPrompt(category, structure);
 };
 
 // AI 이미지 생성 함수 (Supabase Edge Function 사용)
@@ -45,15 +28,10 @@ export const generateAIBackgroundImage = async (prompt: string, category: Catego
   } catch (error) {
     console.error('AI image generation failed:', error);
     
-    // Fallback to gradient placeholder
-    const colors = {
-      minimal_business: ['#f8fafc', '#e2e8f0'],
-      cafe_vintage: ['#fef7ed', '#fed7aa'],
-      modern_bold: ['#f0f9ff', '#bae6fd'],
-      friendly_colorful: ['#fef3f2', '#fecaca']
-    };
-    
-    const [startColor, endColor] = colors[category] || colors.minimal_business;
+    // Fallback to concept-based gradient placeholder
+    const structure = templateStructures[category] || templateStructures.minimal_business;
+    const colors = structure.colors;
+    const [startColor, endColor] = [colors.background, colors.accent];
     
     const mockImageData = btoa(`
       <svg width="1024" height="640" xmlns="http://www.w3.org/2000/svg">
@@ -86,6 +64,9 @@ export const generateAITemplate = async (
   const basePrompt = customPrompt || buildTemplatePrompt(category, layout);
   const generatedImageUrl = await generateAIBackgroundImage(basePrompt, category, layout);
   
+  // 템플릿 구조 정보 포함
+  const structure = templateStructures[category] || templateStructures.minimal_business;
+  
   const template: AIGeneratedTemplate = {
     id: `ai-${category}-${layout}-${Date.now()}`,
     name: `AI ${category.replace('_', ' ')} - ${layout.replace('_', ' ')}`,
@@ -93,7 +74,8 @@ export const generateAITemplate = async (
     layoutType: layout,
     printOptimized: true,
     category,
-    prompt: basePrompt
+    prompt: basePrompt,
+    structure // 구조 정보 추가
   };
   
   return template;

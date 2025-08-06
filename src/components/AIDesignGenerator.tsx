@@ -23,32 +23,46 @@ interface DesignCategory {
 
 const designCategories: DesignCategory[] = [
   {
-    id: 'minimal_business',
-    name: '미니멀 비즈니스',
-    description: '화이트 배경, 깔끔한 산세리프, 포인트 컬러',
-    icon: Palette,
-    color: 'hsl(0 0% 20%)'
-  },
-  {
     id: 'cafe_vintage',
     name: '카페 빈티지',
-    description: '베이지 배경, 필기체 조합, 장식 요소',
+    description: '따뜻한 크림색, 필기체 폰트, 커피 장식',
     icon: Coffee,
-    color: 'hsl(30 30% 60%)'
+    color: 'hsl(30 40% 50%)'
+  },
+  {
+    id: 'minimal_business',
+    name: '미니멀 비즈니스',
+    description: '깔끔한 화이트, 모던 타이포, 기하학적',
+    icon: Palette,
+    color: 'hsl(220 60% 30%)'
   },
   {
     id: 'modern_bold',
     name: '모던 볼드',
-    description: '굵은 타이포, 강한 대비, 기하학적 요소',
+    description: '전기 블루, 강한 대비, 테크 패턴',
     icon: Zap,
     color: 'hsl(220 100% 50%)'
   },
   {
     id: 'friendly_colorful',
     name: '친근한 컬러풀',
-    description: '밝은 배경, 둥근 모서리, 아이콘 중심',
+    description: '파스텔 그라데이션, 둥근 타이포, 귀여운 아이콘',
     icon: Heart,
     color: 'hsl(340 80% 60%)'
+  },
+  {
+    id: 'hospital_clean',
+    name: '병원 클린',
+    description: '신뢰감 있는 그린, 깔끔한 의료진 느낌',
+    icon: Palette,
+    color: 'hsl(160 70% 40%)'
+  },
+  {
+    id: 'restaurant_elegant',
+    name: '레스토랑 엘레강트',
+    description: '고급 세리프 폰트, 와인 컬러, 우아한 장식',
+    icon: Coffee,
+    color: 'hsl(15 60% 30%)'
   }
 ];
 
@@ -64,31 +78,43 @@ interface AIDesignGeneratorProps {
   onTemplateGenerated: (templates: QRTemplate[]) => void;
 }
 
-// QRTemplate으로 변환하는 함수
+// QRTemplate으로 변환하는 함수 - 구조 정보 활용
 const convertAITemplateToQRTemplate = (aiTemplate: AIGeneratedTemplate): QRTemplate => {
-  const categoryColors = {
-    minimal_business: { bg: '#ffffff', accent: '#1e3a8a', text: '#000000' },
-    cafe_vintage: { bg: '#faf7f0', accent: '#8b4513', text: '#2d1810' },
-    modern_bold: { bg: '#ffffff', accent: '#0066ff', text: '#000000' },
-    friendly_colorful: { bg: '#ffffff', accent: '#ff6b6b', text: '#2d3748' }
-  };
-
-  const colors = categoryColors[aiTemplate.category];
+  const structure = aiTemplate.structure;
+  if (!structure) {
+    // 기본 구조 사용
+    return {
+      id: aiTemplate.id,
+      name: aiTemplate.name,
+      description: `AI ${aiTemplate.category.replace('_', ' ')} design`,
+      backgroundColor: '#ffffff',
+      accentColor: '#1e3a8a',
+      textColor: '#000000',
+      borderStyle: 'none',
+      layout: aiTemplate.layoutType,
+      qrSizeRatio: 'medium',
+      backgroundPattern: 'none',
+      decorativeElements: ['frame'],
+      aiGeneratedBackground: aiTemplate.generatedImageUrl,
+      category: aiTemplate.category
+    };
+  }
 
   return {
     id: aiTemplate.id,
     name: aiTemplate.name,
     description: `AI ${aiTemplate.category.replace('_', ' ')} design`,
-    backgroundColor: colors.bg,
-    accentColor: colors.accent,
-    textColor: colors.text,
+    backgroundColor: structure.colors.background,
+    accentColor: structure.colors.accent,
+    textColor: structure.colors.text,
     borderStyle: aiTemplate.layoutType === 'tag_style' ? 'rounded' : 'none',
     layout: aiTemplate.layoutType,
-    qrSizeRatio: 'medium',
+    qrSizeRatio: structure.qrPosition.size,
     backgroundPattern: 'none',
-    decorativeElements: ['frame'],
+    decorativeElements: structure.decorativeElements as any,
     aiGeneratedBackground: aiTemplate.generatedImageUrl,
-    category: aiTemplate.category
+    category: aiTemplate.category,
+    structure: structure // 구조 정보 포함
   };
 };
 
