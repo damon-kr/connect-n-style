@@ -7,8 +7,6 @@ import { TemplateSelector } from '@/components/TemplateSelector';
 import { QRPreview } from '@/components/QRPreview';
 import { ShareModal } from '@/components/ShareModal';
 import { AdBanner } from '@/components/AdBanner';
-import { AIDesignGenerator } from '@/components/AIDesignGenerator';
-import { AITemplateSelector } from '@/components/AITemplateSelector';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Wifi, QrCode, Download, Sparkles, Heart, Github } from 'lucide-react';
@@ -29,7 +27,6 @@ const Index = () => {
   const [generatedCount, setGeneratedCount] = useState(0);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string>();
-  const [aiGeneratedTemplates, setAiGeneratedTemplates] = useState<QRTemplate[]>([]);
 
   const handleDownload = (imageUrl: string) => {
     setGeneratedCount(prev => prev + 1);
@@ -42,13 +39,6 @@ const Index = () => {
   const handleShare = (imageUrl?: string) => {
     setGeneratedImageUrl(imageUrl);
     setShareModalOpen(true);
-  };
-
-  const handleAITemplateGenerated = (templates: QRTemplate[]) => {
-    setAiGeneratedTemplates(templates);
-    if (templates.length > 0) {
-      setSelectedTemplate(templates[0]);
-    }
   };
 
   return (
@@ -171,23 +161,10 @@ const Index = () => {
               </div>
               
               {selectedSize && (
-                <>
-                  <AIDesignGenerator onTemplateGenerated={handleAITemplateGenerated} />
-                  
-                  {aiGeneratedTemplates.length > 0 && (
-                    <AITemplateSelector
-                      templates={aiGeneratedTemplates}
-                      selectedTemplate={selectedTemplate}
-                      onTemplateSelect={setSelectedTemplate}
-                    />
-                  )}
-                  
-                  <TemplateSelector 
-                    selectedTemplate={selectedTemplate}
-                    onTemplateSelect={setSelectedTemplate}
-                    printSize={selectedSize}
-                  />
-                </>
+                <TemplateSelector 
+                  selectedTemplate={selectedTemplate}
+                  onTemplateSelect={setSelectedTemplate}
+                />
               )}
               
               {!selectedSize && (
