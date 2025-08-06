@@ -11,47 +11,68 @@ export const buildTemplatePrompt = (category: CategoryType, layout: LayoutType):
   return generateConceptPrompt(category, structure);
 };
 
-// AI 이미지 생성 함수 (Supabase Edge Function 사용)
+// AI 이미지 생성 함수 (Supabase Edge Function 사용) - 완전 재작성
 export const generateAIBackgroundImage = async (prompt: string, category: CategoryType, layout: LayoutType): Promise<string> => {
   try {
-    console.log('Generating AI image with prompt:', prompt);
+    console.log('=== AI Template Generation Start ===');
+    console.log('Prompt:', prompt);
+    console.log('Category:', category);
+    console.log('Layout:', layout);
     
     const { data, error } = await supabase.functions.invoke('generate-ai-template', {
       method: 'POST',
-      body: { prompt, category, layout }
+      body: { 
+        prompt: prompt.trim(), 
+        category, 
+        layout 
+      }
     });
 
+    console.log('Supabase function response:', { data, error });
+
     if (error) {
-      throw new Error(error.message || 'Failed to generate AI image');
+      console.error('Supabase function error:', error);
+      throw new Error(`AI 생성 실패: ${error.message}`);
     }
 
+    if (!data || !data.template || !data.template.generatedImageUrl) {
+      console.error('Invalid response structure:', data);
+      throw new Error('AI 응답 형식이 올바르지 않습니다');
+    }
+
+    console.log('AI image generated successfully:', data.template.generatedImageUrl.substring(0, 100) + '...');
     return data.template.generatedImageUrl;
-  } catch (error) {
-    console.error('AI image generation failed:', error);
     
-    // Fallback to concept-based gradient placeholder
+  } catch (error) {
+    console.error('=== AI Generation Failed ===');
+    console.error('Error details:', error);
+    
+    // 안정성 있는 폴백 생성
     const structure = templateStructures[category] || templateStructures.minimal_business;
     const colors = structure.colors;
-    const [startColor, endColor] = [colors.background, colors.accent];
     
-    const mockImageData = btoa(`
+    const fallbackSvg = `
       <svg width="1024" height="640" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" style="stop-color:${startColor}"/>
-            <stop offset="100%" style="stop-color:${endColor}"/>
+            <stop offset="0%" style="stop-color:${colors.background}"/>
+            <stop offset="100%" style="stop-color:${colors.accent}"/>
           </linearGradient>
         </defs>
         <rect width="100%" height="100%" fill="url(#grad)"/>
-        <text x="50%" y="40%" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#374151" text-anchor="middle" dy=".3em">
-          ${category.replace('_', ' ')}
+        <text x="50%" y="30%" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="${colors.text}" text-anchor="middle" dy=".3em">
+          ${category.replace('_', ' ')} Style
         </text>
-        <text x="50%" y="60%" font-family="Arial, sans-serif" font-size="24" fill="#6b7280" text-anchor="middle" dy=".3em">
+        <text x="50%" y="50%" font-family="Arial, sans-serif" font-size="24" fill="${colors.text}" text-anchor="middle" dy=".3em">
           ${layout.replace('_', ' ')} Layout
         </text>
+        <text x="50%" y="70%" font-family="Arial, sans-serif" font-size="16" fill="${colors.text}" text-anchor="middle" dy=".3em">
+          Fallback Template (AI 생성 실패)
+        </text>
       </svg>
-    `);
+    `.trim();
     
+    const mockImageData = btoa(fallbackSvg);
     return `data:image/svg+xml;base64,${mockImageData}`;
   }
 };

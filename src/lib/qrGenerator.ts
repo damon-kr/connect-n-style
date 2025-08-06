@@ -4,27 +4,43 @@ import { WiFiConfig } from '@/types/wifi';
 export const generateWiFiQRString = (config: WiFiConfig): string => {
   const { ssid, password, security, hidden = false } = config;
   
-  // WiFi QR code format: WIFI:T:WPA;S:mynetwork;P:mypass;H:false;;
-  return `WIFI:T:${security};S:${ssid};P:${password};H:${hidden};;`;
+  // WiFi QR code standard format - 중요: 정확한 보안 타입 매핑
+  let securityType: string = security;
+  if (security === 'WPA') {
+    securityType = 'WPA2'; // WPA/WPA2는 실제로는 WPA2로 처리
+  }
+  
+  // 표준 WiFi QR 포맷: WIFI:T:WPA2;S:networkname;P:password;H:false;;
+  const hiddenFlag = hidden ? 'true' : 'false';
+  const qrString = `WIFI:T:${securityType};S:${ssid};P:${password};H:${hiddenFlag};;`;
+  
+  console.log('Generated WiFi QR String:', qrString);
+  return qrString;
 };
 
 export const generateQRCode = async (config: WiFiConfig, template: any): Promise<string> => {
   try {
     const qrString = generateWiFiQRString(config);
+    console.log('Generating QR for:', qrString);
     
-    const canvas = await QRCode.toCanvas(qrString, {
+    const qrOptions = {
       width: 512,
       margin: 2,
       color: {
-        dark: template.textColor,
-        light: template.backgroundColor
-      }
-    });
+        dark: template?.textColor || '#000000',
+        light: template?.backgroundColor || '#FFFFFF'
+      },
+      errorCorrectionLevel: 'M' as const // 중간 수준 오류 보정으로 안정성 향상
+    };
     
-    return canvas.toDataURL();
+    // canvas 대신 데이터 URL 직접 생성으로 안정성 향상
+    const qrDataUrl = await QRCode.toDataURL(qrString, qrOptions);
+    console.log('QR Code generated successfully');
+    
+    return qrDataUrl;
   } catch (error) {
     console.error('Error generating QR code:', error);
-    throw new Error('Failed to generate QR code');
+    throw new Error(`QR 코드 생성 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`);
   }
 };
 
