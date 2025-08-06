@@ -10,8 +10,7 @@ import { QRTemplate, AIGeneratedTemplate } from "@/types/wifi";
 import { 
   generateTemplatesBatch, 
   generateMultipleVariations,
-  CategoryType,
-  buildTemplatePrompt 
+  CategoryType
 } from "@/lib/aiTemplateGenerator";
 
 interface DesignCategory {
@@ -67,7 +66,6 @@ interface AIDesignGeneratorProps {
 
 // QRTemplate으로 변환하는 함수
 const convertAITemplateToQRTemplate = (aiTemplate: AIGeneratedTemplate): QRTemplate => {
-  // 카테고리별 색상 팔레트 정의
   const categoryColors = {
     minimal_business: { bg: '#ffffff', accent: '#1e3a8a', text: '#000000' },
     cafe_vintage: { bg: '#faf7f0', accent: '#8b4513', text: '#2d1810' },
@@ -80,7 +78,7 @@ const convertAITemplateToQRTemplate = (aiTemplate: AIGeneratedTemplate): QRTempl
   return {
     id: aiTemplate.id,
     name: aiTemplate.name,
-    description: `AI generated ${aiTemplate.category.replace('_', ' ')} style with ${aiTemplate.layoutType.replace('_', ' ')} layout`,
+    description: `AI ${aiTemplate.category.replace('_', ' ')} design`,
     backgroundColor: colors.bg,
     accentColor: colors.accent,
     textColor: colors.text,
