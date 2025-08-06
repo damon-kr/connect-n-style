@@ -17,6 +17,7 @@ export const generateAIBackgroundImage = async (prompt: string, category: Catego
     console.log('Generating AI image with prompt:', prompt);
     
     const { data, error } = await supabase.functions.invoke('generate-ai-template', {
+      method: 'POST',
       body: { prompt, category, layout }
     });
 

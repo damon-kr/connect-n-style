@@ -1,4 +1,4 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
+// Remove xhr polyfill to avoid conflicts with native fetch
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const huggingFaceApiKey = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
@@ -6,6 +6,7 @@ const huggingFaceApiKey = Deno.env.get('HUGGING_FACE_ACCESS_TOKEN');
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 };
 
 serve(async (req) => {
