@@ -3,17 +3,27 @@ import { WiFiConfig } from '@/types/wifi';
 
 export const generateWiFiQRString = (config: WiFiConfig): string => {
   const { ssid, password, security, hidden = false } = config;
-  
-  // WiFi QR code standard format - 중요: 정확한 보안 타입 매핑
+
+  // Escape special characters per WiFi QR standard
+  const esc = (s: string) =>
+    s.replace(/\\/g, '\\\\') // escape backslash first
+     .replace(/;/g, '\\;')
+     .replace(/,/g, '\\,')
+     .replace(/:/g, '\\:')
+     .replace(/"/g, '\\"');
+
+  // Security mapping: use WPA (covers WPA/WPA2), WEP, nopass
   let securityType: string = security;
   if (security === 'WPA') {
-    securityType = 'WPA2'; // WPA/WPA2는 실제로는 WPA2로 처리
+    securityType = 'WPA';
   }
-  
-  // 표준 WiFi QR 포맷: WIFI:T:WPA2;S:networkname;P:password;H:false;;
+
   const hiddenFlag = hidden ? 'true' : 'false';
-  const qrString = `WIFI:T:${securityType};S:${ssid};P:${password};H:${hiddenFlag};;`;
-  
+  const sPart = `S:${esc(ssid)};`;
+  const pPart = securityType !== 'nopass' && password ? `P:${esc(password)};` : '';
+  const tPart = `T:${securityType};`;
+
+  const qrString = `WIFI:${tPart}${sPart}${pPart}H:${hiddenFlag};;`;
   console.log('Generated WiFi QR String:', qrString);
   return qrString;
 };

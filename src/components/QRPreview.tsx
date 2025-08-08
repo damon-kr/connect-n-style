@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Download, Share2, FileText, QrCode, Eye, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
+import { computeLayout } from '@/lib/layoutEngine';
 
 interface QRPreviewProps {
   config: WiFiConfig;
@@ -34,7 +35,6 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   
   const canvasRef = useRef<QRCanvasRef>(null);
 
-  // 설정이 변경될 때마다 QR 생성 상태 리셋
   useEffect(() => {
     resetQR();
   }, [config, template, printSize, businessName, additionalText, otherText, businessFont, fontSize, fontWeight, showWifiInfo, wifiInfoFont, resetQR]);
@@ -69,6 +69,9 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
+    // 항상 최신 레이아웃과 QR로 캔버스 렌더링 후 내보내기
+    await canvas.renderToCanvas();
+
     if (pendingAction === 'download') {
       const dataUrl = canvas.getCanvasDataUrl();
       if (dataUrl) {
@@ -83,22 +86,17 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       const dataUrl = canvas.getCanvasDataUrl();
       if (dataUrl) {
         const pdf = new jsPDF();
-        
         const pageWidth = pdf.internal.pageSize.getWidth();
         const pageHeight = pdf.internal.pageSize.getHeight();
         const imgAspectRatio = printSize ? printSize.width / printSize.height : 1;
-        
         let imgWidth = pageWidth - 40;
         let imgHeight = imgWidth / imgAspectRatio;
-        
         if (imgHeight > pageHeight - 40) {
           imgHeight = pageHeight - 40;
           imgWidth = imgHeight * imgAspectRatio;
         }
-        
         const x = (pageWidth - imgWidth) / 2;
         const y = (pageHeight - imgHeight) / 2;
-        
         pdf.addImage(dataUrl, 'PNG', x, y, imgWidth, imgHeight);
         pdf.save(`${businessName || config.ssid || 'WiFi'}-QR.pdf`);
         toast.success('PDF가 다운로드되었습니다!');
@@ -108,113 +106,25 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     setPendingAction(null);
   };
 
-  // 캔버스 요소들 생성
-  const generateCanvasElements = () => {
-    if (!printSize) return [];
+  // 레이아웃 계산 (프리뷰/캔버스 공용)
+  const layoutElements = (() => {
+    if (!template || !printSize) return [] as any[];
+    return computeLayout(
+      template,
+      printSize,
+      {
+        businessName,
+        additionalText,
+        otherText,
+        showWifiInfo,
+        businessFont,
+        wifiInfoFont,
+      },
+      config.ssid,
+      config.password
+    );
+  })();
 
-    const canvasWidth = printSize.width;
-    const canvasHeight = printSize.height;
-
-    return [
-      // QR 코드
-      {
-        id: 'qr',
-        type: 'qr' as const,
-        x: canvasWidth / 2 - 80,
-        y: canvasHeight / 2 - 80,
-        width: 160,
-        height: 160
-      },
-      // 업체명
-      {
-        id: 'business',
-        type: 'text' as const,
-        x: canvasWidth / 2 - 100,
-        y: 40,
-        width: 200,
-        height: 30,
-        textElement: {
-          id: 'business',
-          text: businessName || '업체명',
-          x: canvasWidth / 2 - 100,
-          y: 40,
-          width: 200,
-          height: 30,
-          fontSize: 18,
-          fontFamily: 'Noto Sans KR',
-          fontWeight: 'bold' as const,
-          color: '#000000',
-          visible: !!businessName
-        }
-      },
-      // 부가설명
-      {
-        id: 'additional',
-        type: 'text' as const,
-        x: canvasWidth / 2 - 100,
-        y: 80,
-        width: 200,
-        height: 25,
-        textElement: {
-          id: 'additional',
-          text: additionalText || '부가설명',
-          x: canvasWidth / 2 - 100,
-          y: 80,
-          width: 200,
-          height: 25,
-          fontSize: 14,
-          fontFamily: 'Noto Sans KR',
-          fontWeight: 'normal' as const,
-          color: '#666666',
-          visible: !!additionalText
-        }
-      },
-      // WiFi SSID
-      {
-        id: 'wifi-ssid',
-        type: 'text' as const,
-        x: canvasWidth / 2 - 100,
-        y: canvasHeight / 2 + 140,
-        width: 200,
-        height: 25,
-        textElement: {
-          id: 'wifi-ssid',
-          text: config.ssid ? `WIFI : ${config.ssid}` : 'WIFI : ',
-          x: canvasWidth / 2 - 100,
-          y: canvasHeight / 2 + 140,
-          width: 200,
-          height: 25,
-          fontSize: 16,
-          fontFamily: 'Noto Sans KR',
-          fontWeight: 'bold' as const,
-          color: '#000000',
-          visible: true
-        }
-      },
-      // WiFi 비밀번호
-      {
-        id: 'wifi-password',
-        type: 'text' as const,
-        x: canvasWidth / 2 - 100,
-        y: canvasHeight / 2 + 170,
-        width: 200,
-        height: 20,
-        textElement: {
-          id: 'wifi-password',
-          text: config.password ? `PW : ${config.password}` : 'PW : ',
-          x: canvasWidth / 2 - 100,
-          y: canvasHeight / 2 + 170,
-          width: 200,
-          height: 20,
-          fontSize: 12,
-          fontFamily: 'Noto Sans KR',
-          fontWeight: 'normal' as const,
-          color: '#666666',
-          visible: true
-        }
-      }
-    ];
-  };
 
   return (
     <div className="space-y-6">
@@ -423,7 +333,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         ref={canvasRef}
         template={template}
         printSize={printSize}
-        elements={generateCanvasElements()}
+        elements={layoutElements as any}
         qrDataUrl={qrImage}
       />
       

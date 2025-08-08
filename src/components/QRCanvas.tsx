@@ -14,6 +14,7 @@ interface TextElement {
   fontWeight: 'normal' | 'bold';
   color: string;
   visible: boolean;
+  textAlign?: 'left' | 'center' | 'right';
 }
 
 interface CanvasElement {
@@ -71,50 +72,11 @@ export const QRCanvas = forwardRef<QRCanvasRef, QRCanvasProps>(
         canvas.height = printSize.height;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
-        // AI 생성 배경 또는 기본 배경
-        if (template.aiGeneratedBackground) {
-          const bgImg = new Image();
-          bgImg.onload = () => {
-            // 배경 이미지 비율 맞춤
-            const bgAspectRatio = bgImg.width / bgImg.height;
-            const canvasAspectRatio = canvas.width / canvas.height;
-            
-            let drawWidth = canvas.width;
-            let drawHeight = canvas.height;
-            let offsetX = 0;
-            let offsetY = 0;
-            
-            if (bgAspectRatio > canvasAspectRatio) {
-              drawHeight = canvas.height;
-              drawWidth = drawHeight * bgAspectRatio;
-              offsetX = (canvas.width - drawWidth) / 2;
-            } else {
-              drawWidth = canvas.width;
-              drawHeight = drawWidth / bgAspectRatio;
-              offsetY = (canvas.height - drawHeight) / 2;
-            }
-            
-            ctx.drawImage(bgImg, offsetX, offsetY, drawWidth, drawHeight);
-            renderElements(ctx, qrImage);
-            resolve();
-          };
-          
-          bgImg.onerror = () => {
-            // 배경 로드 실패시 기본 배경
-            ctx.fillStyle = template.backgroundColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            renderElements(ctx, qrImage);
-            resolve();
-          };
-          
-          bgImg.src = template.aiGeneratedBackground;
-        } else {
-          // 기본 배경색
-          ctx.fillStyle = template.backgroundColor;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
-          renderElements(ctx, qrImage);
-          resolve();
-        }
+        // 배경색 (AI 배경 제거, 고정 컬러)
+        ctx.fillStyle = template.backgroundColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        renderElements(ctx, qrImage);
+        resolve();
       });
     };
 
@@ -124,8 +86,8 @@ export const QRCanvas = forwardRef<QRCanvasRef, QRCanvasProps>(
       if (qrElement) {
         const img = new Image();
         img.onload = () => {
-          // QR 코드 가독성을 위한 흰색 배경
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+          // QR 코드 가독성을 위한 흰색 배경 (템플릿 배경이 어두운 경우 대비)
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
           ctx.fillRect(qrElement.x - 10, qrElement.y - 10, qrElement.width + 20, qrElement.height + 20);
           
           // QR 코드 그리기
@@ -142,22 +104,21 @@ export const QRCanvas = forwardRef<QRCanvasRef, QRCanvasProps>(
       elements.forEach(element => {
         if (element.type === 'text' && element.textElement?.visible) {
           const textEl = element.textElement;
-          
-          // 텍스트 가독성을 위한 반투명 배경
-          ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-          ctx.fillRect(element.x - 8, element.y - 5, element.width + 16, element.height + 10);
-          
-          // 텍스트 테두리
-          ctx.strokeStyle = 'rgba(0, 0, 0, 0.1)';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(element.x - 8, element.y - 5, element.width + 16, element.height + 10);
-          
-          // 텍스트 렌더링
+
+          // 텍스트 렌더링 (장식 배경 제거, Figma 스타일 존중)
           ctx.font = `${textEl.fontWeight} ${textEl.fontSize}px ${textEl.fontFamily}`;
           ctx.fillStyle = textEl.color;
-          ctx.textAlign = 'center';
+          ctx.textAlign = textEl.textAlign ?? 'center';
           ctx.textBaseline = 'middle';
-          ctx.fillText(textEl.text, element.x + element.width / 2, element.y + element.height / 2);
+          const cx = element.x + element.width / 2;
+          const cy = element.y + element.height / 2;
+          if (ctx.textAlign === 'left') {
+            ctx.fillText(textEl.text, element.x, cy);
+          } else if (ctx.textAlign === 'right') {
+            ctx.fillText(textEl.text, element.x + element.width, cy);
+          } else {
+            ctx.fillText(textEl.text, cx, cy);
+          }
         }
       });
     };
