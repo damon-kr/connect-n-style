@@ -126,7 +126,7 @@ const Index = () => {
                 <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   1
                 </div>
-                <h2 className="text-lg font-semibold">인쇄크기선택</h2>
+                <h2 className="text-lg font-semibold">용지 크기</h2>
               </div>
               
               <PrintSizeSelector 
@@ -143,7 +143,7 @@ const Index = () => {
                 <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   2
                 </div>
-                <h2 className="text-lg font-semibold">WiFi 네트워크 정보</h2>
+                <h2 className="text-lg font-semibold">네트워크 설정</h2>
               </div>
               
               <WiFiForm 
@@ -160,7 +160,7 @@ const Index = () => {
                 <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   3
                 </div>
-                <h2 className="text-lg font-semibold">디자인 템플릿 선택</h2>
+                <h2 className="text-lg font-semibold">디자인 선택</h2>
               </div>
               
               {selectedSize && (
@@ -172,7 +172,7 @@ const Index = () => {
               
               {!selectedSize && (
                 <div className="text-center text-muted-foreground py-12 border-2 border-dashed border-muted rounded-lg">
-                  먼저 인쇄 크기를 선택해주세요
+                  먼저 용지 크기를 선택해주세요
                 </div>
               )}
             </div>
@@ -183,7 +183,7 @@ const Index = () => {
                 <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   4
                 </div>
-                <h2 className="text-lg font-semibold">텍스트 커스터마이징</h2>
+                <h2 className="text-lg font-semibold">커스터마이징</h2>
               </div>
               
               {selectedSize && selectedTemplate && (

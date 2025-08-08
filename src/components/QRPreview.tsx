@@ -3,7 +3,6 @@ import { WiFiConfig, QRTemplate } from '@/types/wifi';
 import { PrintSize } from '@/types/size';
 import { QRCustomizer } from '@/components/QRCustomizer';
 import { DraggablePreview } from '@/components/DraggablePreview';
-import { CPVModal } from '@/components/CPVModal';
 import { AdInterstitial } from '@/components/AdInterstitial';
 import { QRCanvas, QRCanvasRef } from '@/components/QRCanvas';
 import { useQRGeneration } from '@/hooks/useQRGeneration';
@@ -31,7 +30,6 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
   const [pendingAction, setPendingAction] = useState<'download' | 'export' | 'generate' | null>(null);
   const [isDetailMode, setIsDetailMode] = useState(false);
-  const [showCPVModal, setShowCPVModal] = useState(false);
   
   const canvasRef = useRef<QRCanvasRef>(null);
 
@@ -140,13 +138,8 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
   // 상세 조정 모드 토글
   const handleDetailModeToggle = () => {
-    setShowCPVModal(true);
-  };
-
-  // CPV 모달에서 모드 변경
-  const handleModeChange = (mode: 'preview' | 'detail') => {
-    setIsDetailMode(mode === 'detail');
-    setShowCPVModal(false);
+    setIsDetailMode(!isDetailMode);
+    toast.info(isDetailMode ? '미리보기 모드로 변경되었습니다.' : '상세 조정 모드로 변경되었습니다.');
   };
 
   // QR 생성 함수
@@ -276,8 +269,6 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
             onAdditionalTextChange={setAdditionalText}
             otherText={otherText}
             onOtherTextChange={setOtherText}
-            showWifiInfo={showWifiInfo}
-            onShowWifiInfoChange={setShowWifiInfo}
           />
           
           {/* QR Generation Button */}
@@ -488,14 +479,6 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         printSize={printSize}
         elements={layoutElements as any}
         qrDataUrl={qrImage}
-      />
-      
-      {/* CPV Modal */}
-      <CPVModal
-        isOpen={showCPVModal}
-        onClose={() => setShowCPVModal(false)}
-        mode={isDetailMode ? 'detail' : 'preview'}
-        onModeChange={handleModeChange}
       />
       
       {/* Ad Interstitial */}

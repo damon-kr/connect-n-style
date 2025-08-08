@@ -2,7 +2,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Type, FileText, MessageSquare } from 'lucide-react';
 
@@ -13,8 +12,6 @@ interface QRCustomizerProps {
   onAdditionalTextChange: (value: string) => void;
   otherText: string;
   onOtherTextChange: (value: string) => void;
-  showWifiInfo: boolean;
-  onShowWifiInfoChange: (value: boolean) => void;
   businessFont?: string;
   onBusinessFontChange?: (value: string) => void;
   fontSize?: number;
@@ -36,8 +33,6 @@ export const QRCustomizer: React.FC<QRCustomizerProps> = ({
   onAdditionalTextChange,
   otherText,
   onOtherTextChange,
-  showWifiInfo,
-  onShowWifiInfoChange,
 }) => {
   return (
     <div className="space-y-4">
@@ -81,17 +76,6 @@ export const QRCustomizer: React.FC<QRCustomizerProps> = ({
           placeholder="기타 문구를 입력하세요"
           value={otherText}
           onChange={(e) => onOtherTextChange(e.target.value)}
-        />
-      </div>
-
-      <Separator />
-
-      {/* WiFi 정보 표시 */}
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">WiFi 정보 표시</Label>
-        <Switch
-          checked={showWifiInfo}
-          onCheckedChange={onShowWifiInfoChange}
         />
       </div>
     </div>
