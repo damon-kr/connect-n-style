@@ -1,5 +1,5 @@
-// Centralized layout computation for QR preview and canvas rendering
-// Converts template.structure percentages and size enums into absolute pixel elements
+// 피그마 디자인 분석 기반 레이아웃 엔진
+// 정확한 위치와 크기 계산을 위한 개선된 버전
 
 import { QRTemplate } from '@/types/wifi';
 import { PrintSize } from '@/types/size';
@@ -40,22 +40,35 @@ export interface LayoutInputs {
   wifiInfoFont?: string;
 }
 
+// 픽셀 변환 함수 개선
 const pctToPx = (pct: string, total: number) => {
   if (!pct.endsWith('%')) return Number(pct) || 0;
   const v = parseFloat(pct.replace('%', ''));
   return Math.round((v / 100) * total);
 };
 
+// QR 크기 비율 - 피그마 디자인 분석 기반
 const sizeToRatio = (size: 'small' | 'medium' | 'large') => {
-  // Figma 디자인 기준으로 조정된 QR 크기 비율
   switch (size) {
     case 'small':
-      return 0.25; // 작은 QR
+      return 0.22; // 작은 QR (전체의 22%)
     case 'large':
-      return 0.45; // 큰 QR
+      return 0.48; // 큰 QR (전체의 48%)
     default:
-      return 0.35; // 중간 QR
+      return 0.35; // 중간 QR (전체의 35%)
   }
+};
+
+// 텍스트 높이 계산 함수
+const calculateTextHeight = (fontSize: number, lineHeight: number = 1.4) => {
+  return Math.round(fontSize * lineHeight);
+};
+
+// 텍스트 너비 계산 함수 (대략적)
+const calculateTextWidth = (text: string, fontSize: number, fontFamily: string) => {
+  // 대략적인 계산 (실제 폰트 메트릭스는 브라우저에서 계산됨)
+  const avgCharWidth = fontSize * 0.6; // 평균 문자 너비
+  return Math.round(text.length * avgCharWidth);
 };
 
 export const computeLayout = (
@@ -71,7 +84,7 @@ export const computeLayout = (
   const s = template.structure;
   const elements: CanvasElement[] = [];
 
-  // QR 요소 계산 - 중앙 정렬 기준
+  // QR 요소 계산 - 정확한 중앙 정렬
   const qrRatio = sizeToRatio(s.qrPosition.size);
   const qrSide = Math.round(Math.min(W, H) * qrRatio);
   const qrCenterX = pctToPx(s.qrPosition.x, W);
@@ -89,17 +102,17 @@ export const computeLayout = (
   });
 
   // 공통 스타일 설정
-  const fontFamily = s.fontFamily || 'Noto Sans KR';
+  const fontFamily = s.fontFamily || 'Inter';
   const textColor = s.colors?.text || template.textColor || '#111827';
   const align = s.textAlign || 'center';
-  const gap = s.spacing?.elementGap ?? 12;
+  const gap = s.spacing?.elementGap ?? 16;
 
-  // 매장명 텍스트
+  // 매장명 텍스트 - 피그마 분석 기반 위치 조정
   if (inputs.businessName) {
     const storeNameX = pctToPx(s.textPositions.storeName.x, W);
     const storeNameY = pctToPx(s.textPositions.storeName.y, H);
-    const storeWidth = Math.round(W * 0.8); // 더 넓은 텍스트 영역
-    const storeHeight = Math.round(s.fontSizes.storeName * 1.5); // 더 높은 텍스트 높이
+    const storeWidth = Math.round(W * 0.85); // 더 넓은 텍스트 영역
+    const storeHeight = calculateTextHeight(s.fontSizes.storeName, 1.5);
     
     elements.push({
       id: 'business',
@@ -125,12 +138,12 @@ export const computeLayout = (
     });
   }
 
-  // 추가 설명 텍스트
+  // 추가 설명 텍스트 - 피그마 분석 기반 위치 조정
   if (inputs.additionalText) {
     const descX = pctToPx(s.textPositions.description.x, W);
     const descY = pctToPx(s.textPositions.description.y, H);
-    const descWidth = Math.round(W * 0.8);
-    const descHeight = Math.round(s.fontSizes.description * 1.5);
+    const descWidth = Math.round(W * 0.85);
+    const descHeight = calculateTextHeight(s.fontSizes.description, 1.5);
     
     elements.push({
       id: 'description',
@@ -156,12 +169,12 @@ export const computeLayout = (
     });
   }
 
-  // 기타 라벨 텍스트
+  // 기타 라벨 텍스트 - 피그마 분석 기반 위치 조정
   if (inputs.otherText) {
     const otherX = pctToPx(s.textPositions.description.x, W);
     const otherY = pctToPx(s.textPositions.description.y, H) + gap + s.fontSizes.description;
-    const otherWidth = Math.round(W * 0.7);
-    const otherHeight = Math.round(s.fontSizes.qrLabel * 1.4);
+    const otherWidth = Math.round(W * 0.8);
+    const otherHeight = calculateTextHeight(s.fontSizes.qrLabel, 1.4);
     
     elements.push({
       id: 'other',
@@ -187,14 +200,14 @@ export const computeLayout = (
     });
   }
 
-  // WiFi 정보 표시
+  // WiFi 정보 표시 - 피그마 분석 기반 개선
   if (inputs.showWifiInfo && ssid) {
     const wifiX = pctToPx(s.textPositions.wifiInfo.x, W);
     const wifiY = pctToPx(s.textPositions.wifiInfo.y, H);
-    const wifiWidth = Math.round(W * 0.8);
-    const wifiLineHeight = Math.round(s.fontSizes.wifiInfo * 1.4);
+    const wifiWidth = Math.round(W * 0.85);
+    const wifiLineHeight = calculateTextHeight(s.fontSizes.wifiInfo, 1.4);
 
-    // SSID 라인
+    // SSID 라인 - 피그마 분석 기반 텍스트 형식
     elements.push({
       id: 'wifi-ssid',
       type: 'text',
@@ -218,7 +231,7 @@ export const computeLayout = (
       },
     });
 
-    // 비밀번호 라인 (있는 경우만)
+    // 비밀번호 라인 - 피그마 분석 기반 (있는 경우만)
     if (password && password.trim()) {
       elements.push({
         id: 'wifi-password',
@@ -234,7 +247,7 @@ export const computeLayout = (
           y: Math.round(wifiY + gap * 0.8),
           width: wifiWidth,
           height: wifiLineHeight,
-          fontSize: Math.max(12, Math.round(s.fontSizes.wifiInfo * 0.9)),
+          fontSize: Math.max(14, Math.round(s.fontSizes.wifiInfo * 0.9)),
           fontFamily,
           fontWeight: 'normal',
           color: textColor,

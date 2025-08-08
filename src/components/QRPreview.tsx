@@ -221,7 +221,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                   )}
                 </div>
                 
-                {/* QR Code */}
+                {/* QR Code - 피그마 디자인 기반 정확한 위치 */}
                 {qrImage && (
                   <div
                     className="absolute"
@@ -252,13 +252,15 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                   </div>
                 )}
                 
-                {/* Text Elements */}
+                {/* Text Elements - 피그마 디자인 기반 정확한 스케일링 */}
                 {layoutElements.filter(el => el.type === 'text').map((element) => {
                   if (!element.textElement?.visible) return null;
                   
-                  // 스케일링 계산 수정
-                  const scaleX = Math.min(400, printSize.width) / printSize.width;
-                  const scaleY = Math.min(400, printSize.height) / printSize.height;
+                  // 피그마 디자인 기반 정확한 스케일링 계산
+                  const containerWidth = Math.min(400, printSize.width);
+                  const containerHeight = Math.min(400, printSize.height);
+                  const scaleX = containerWidth / printSize.width;
+                  const scaleY = containerHeight / printSize.height;
                   const scale = Math.min(scaleX, scaleY); // 일관된 스케일링
                   
                   return (
