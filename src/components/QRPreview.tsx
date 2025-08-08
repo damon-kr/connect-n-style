@@ -2,12 +2,14 @@ import { useState, useEffect, useRef } from 'react';
 import { WiFiConfig, QRTemplate } from '@/types/wifi';
 import { PrintSize } from '@/types/size';
 import { QRCustomizer } from '@/components/QRCustomizer';
+import { ElementCustomizer, ElementStyle } from '@/components/ElementCustomizer';
+import { CPVModal } from '@/components/CPVModal';
 import { AdInterstitial } from '@/components/AdInterstitial';
 import { QRCanvas, QRCanvasRef } from '@/components/QRCanvas';
 import { useQRGeneration } from '@/hooks/useQRGeneration';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Share2, FileText, QrCode, Eye, Settings } from 'lucide-react';
+import { Download, Share2, FileText, QrCode, Eye, Settings, Edit3 } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import { computeLayout } from '@/lib/layoutEngine';
@@ -32,12 +34,124 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const [wifiInfoFont, setWifiInfoFont] = useState('inter');
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
   const [pendingAction, setPendingAction] = useState<'download' | 'export' | 'generate' | null>(null);
+  const [isDetailMode, setIsDetailMode] = useState(false);
+  const [showCPVModal, setShowCPVModal] = useState(false);
   
   const canvasRef = useRef<QRCanvasRef>(null);
 
+  // 요소별 스타일 상태
+  const [elementStyles, setElementStyles] = useState<ElementStyle[]>([
+    {
+      id: 'business',
+      name: '업체명',
+      visible: true,
+      fontSize: 28,
+      fontFamily: 'Inter',
+      fontWeight: 'bold',
+      color: '#1F2937',
+      x: 50,
+      y: 20,
+      width: 85,
+      height: 15,
+      textAlign: 'center',
+    },
+    {
+      id: 'description',
+      name: '추가설명',
+      visible: true,
+      fontSize: 16,
+      fontFamily: 'Inter',
+      fontWeight: 'normal',
+      color: '#6B7280',
+      x: 50,
+      y: 85,
+      width: 85,
+      height: 10,
+      textAlign: 'center',
+    },
+    {
+      id: 'other',
+      name: '기타문구',
+      visible: false,
+      fontSize: 14,
+      fontFamily: 'Inter',
+      fontWeight: 'normal',
+      color: '#6B7280',
+      x: 50,
+      y: 95,
+      width: 80,
+      height: 8,
+      textAlign: 'center',
+    },
+    {
+      id: 'qr',
+      name: 'QR 코드',
+      visible: true,
+      fontSize: 16,
+      fontFamily: 'Inter',
+      fontWeight: 'normal',
+      color: '#000000',
+      x: 50,
+      y: 50,
+      width: 35,
+      height: 35,
+      textAlign: 'center',
+    },
+    {
+      id: 'wifi-ssid',
+      name: 'WiFi ID',
+      visible: true,
+      fontSize: 18,
+      fontFamily: 'Inter',
+      fontWeight: 'bold',
+      color: '#1F2937',
+      x: 50,
+      y: 75,
+      width: 85,
+      height: 12,
+      textAlign: 'center',
+    },
+    {
+      id: 'wifi-password',
+      name: 'WiFi 비밀번호',
+      visible: true,
+      fontSize: 16,
+      fontFamily: 'Inter',
+      fontWeight: 'normal',
+      color: '#6B7280',
+      x: 50,
+      y: 87,
+      width: 85,
+      height: 10,
+      textAlign: 'center',
+    },
+  ]);
+
   useEffect(() => {
     resetQR();
-  }, [config, template, printSize, businessName, additionalText, otherText, businessFont, fontSize, fontWeight, showWifiInfo, wifiInfoFont, resetQR]);
+  }, [config, template, printSize, businessName, additionalText, otherText, businessFont, fontSize, fontWeight, showWifiInfo, wifiInfoFont, elementStyles, resetQR]);
+
+  // 요소 스타일 변경 핸들러
+  const handleElementChange = (elementId: string, updates: Partial<ElementStyle>) => {
+    setElementStyles(prev => 
+      prev.map(element => 
+        element.id === elementId 
+          ? { ...element, ...updates }
+          : element
+      )
+    );
+  };
+
+  // 상세 조정 모드 토글
+  const handleDetailModeToggle = () => {
+    setShowCPVModal(true);
+  };
+
+  // CPV 모달에서 모드 변경
+  const handleModeChange = (mode: 'preview' | 'detail') => {
+    setIsDetailMode(mode === 'detail');
+    setShowCPVModal(false);
+  };
 
   // QR 생성 함수 - 훅에서 가져온 함수 사용
   const handleGenerateQR = async () => {
@@ -106,10 +220,12 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     setPendingAction(null);
   };
 
-  // 레이아웃 계산 (프리뷰/캔버스 공용)
+  // 레이아웃 계산 (프리뷰/캔버스 공용) - 요소 스타일 반영
   const layoutElements = (() => {
     if (!template || !printSize) return [] as any[];
-    return computeLayout(
+    
+    // 기본 레이아웃 계산
+    const baseElements = computeLayout(
       template,
       printSize,
       {
@@ -123,8 +239,31 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       config.ssid,
       config.password
     );
-  })();
 
+    // 요소 스타일 적용
+    return baseElements.map(element => {
+      const style = elementStyles.find(s => s.id === element.id);
+      if (style && element.textElement) {
+        return {
+          ...element,
+          textElement: {
+            ...element.textElement,
+            fontSize: style.fontSize,
+            fontFamily: style.fontFamily,
+            fontWeight: style.fontWeight,
+            color: style.color,
+            visible: style.visible,
+            textAlign: style.textAlign,
+          },
+          x: (style.x / 100) * printSize.width,
+          y: (style.y / 100) * printSize.height,
+          width: (style.width / 100) * printSize.width,
+          height: (style.height / 100) * printSize.height,
+        };
+      }
+      return element;
+    });
+  })();
 
   return (
     <div className="space-y-6">
@@ -183,13 +322,32 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         </CardContent>
       </Card>
 
+      {/* Element Customizer - 상세 조정 모드에서만 표시 */}
+      {isDetailMode && (
+        <ElementCustomizer
+          elements={elementStyles}
+          onElementChange={handleElementChange}
+        />
+      )}
+
       {/* Preview */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Eye size={14} />
-            미리보기
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm flex items-center gap-2">
+              <Eye size={14} />
+              미리보기
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDetailModeToggle}
+              className="flex items-center gap-2"
+            >
+              <Edit3 size={14} />
+              {isDetailMode ? '미리보기 모드' : '상세 조정 모드'}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-3">
           {qrImage && printSize ? (
@@ -273,13 +431,13 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                         width: `${element.width * scale}px`,
                         height: `${element.height * scale}px`,
                         fontSize: `${element.textElement.fontSize * scale}px`,
-                        fontFamily: template?.structure?.fontFamily || element.textElement.fontFamily,
+                        fontFamily: element.textElement.fontFamily,
                         fontWeight: element.textElement.fontWeight,
-                        color: template?.structure?.colors?.text || (template?.aiGeneratedBackground ? '#ffffff' : element.textElement.color),
+                        color: element.textElement.color,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        textAlign: template?.structure?.textAlign || 'center',
+                        textAlign: element.textElement.textAlign || 'center',
                         lineHeight: '1.2',
                         zIndex: 20,
                         background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.95)' : 'transparent',
@@ -342,6 +500,14 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         printSize={printSize}
         elements={layoutElements as any}
         qrDataUrl={qrImage}
+      />
+      
+      {/* CPV Modal */}
+      <CPVModal
+        isOpen={showCPVModal}
+        onClose={() => setShowCPVModal(false)}
+        mode={isDetailMode ? 'detail' : 'preview'}
+        onModeChange={handleModeChange}
       />
       
       {/* Ad Interstitial */}
