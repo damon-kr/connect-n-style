@@ -231,7 +231,11 @@ export const DraggablePreview: React.FC<DraggablePreviewProps> = ({
 
             {/* 드래그 가능한 텍스트 요소들 */}
             {elementStyles
-              .filter((element) => element.visible && element.id !== 'qr')
+              .filter((element) => {
+                if (!element.visible) return false;
+                if (!showWifiInfo && (element.id === 'wifi-ssid' || element.id === 'wifi-password')) return false;
+                return element.id !== 'qr';
+              })
               .map((element) => {
                 const containerWidth = Math.min(400, printSize.width);
                 const containerHeight = Math.min(400, printSize.height);

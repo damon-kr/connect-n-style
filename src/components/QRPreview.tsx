@@ -124,7 +124,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
 
   useEffect(() => {
     resetQR();
-  }, [config, template, printSize, businessName, additionalText, otherText, showWifiInfo, elementStyles, resetQR]);
+  }, [config, template, printSize, showWifiInfo, resetQR]);
 
   // 레이아웃 기반 초깃값 시딩: 템플릿/용지 변경 시 1회 적용
   useEffect(() => {
