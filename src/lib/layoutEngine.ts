@@ -51,11 +51,11 @@ const pctToPx = (pct: string, total: number) => {
 const sizeToRatio = (size: 'small' | 'medium' | 'large') => {
   switch (size) {
     case 'small':
-      return 0.22; // 작은 QR (전체의 22%)
+      return 0.22; // 작은 QR (전체의 48%)
     case 'large':
-      return 0.48; // 큰 QR (전체의 48%)
+      return 0.48; // 큰 QR (전체의 75%)
     default:
-      return 0.35; // 중간 QR (전체의 35%)
+      return 0.35; // 중간 QR (전체의 65%)
   }
 };
 
