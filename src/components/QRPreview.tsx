@@ -253,7 +253,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                 )}
                 
                 {/* Text Elements */}
-                {generateCanvasElements().filter(el => el.type === 'text').map((element) => {
+                {layoutElements.filter(el => el.type === 'text').map((element) => {
                   if (!element.textElement?.visible) return null;
                   
                   return (
