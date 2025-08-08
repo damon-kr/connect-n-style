@@ -53,7 +53,24 @@ export interface QRTemplate {
   layout: 'center' | 'top' | 'bottom' | 'split-left' | 'split-right' | 'vertical_centered' | 'horizontal_split' | 'top_heavy' | 'bottom_heavy' | 'tag_style';
   qrSizeRatio: 'small' | 'medium' | 'large';
   backgroundPattern?: 'gradient' | 'dots' | 'lines' | 'none' | 'subtle-texture' | 'subtle-lines';
-  decorativeElements?: ('corners' | 'frame' | 'icons' | 'shapes' | 'vintage-frame' | 'coffee-icons' | 'professional-frame' | 'geometric-shapes' | 'color-accents')[];
+  decorativeElements?: (
+    | 'corners'
+    | 'frame'
+    | 'icons'
+    | 'shapes'
+    | 'vintage-frame'
+    | 'coffee-icons'
+    | 'professional-frame'
+    | 'geometric-shapes'
+    | 'color-accents'
+    | 'clean-border'
+    | 'elegant-frame'
+    | 'colorful-shapes'
+    | 'retro-icons'
+    | 'gold-accents'
+    | 'tech-shapes'
+    | 'neon-accents'
+  )[];
   aiGeneratedBackground?: string; // AI generated background image URL
   category?: 'minimal_business' | 'cafe_vintage' | 'modern_bold' | 'friendly_colorful' | 'hospital_clean' | 'restaurant_elegant' | 'tag_style';
   structure?: TemplateStructure; // New: concept-specific structure

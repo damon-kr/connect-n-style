@@ -17,12 +17,10 @@ export const generateWiFiQRString = (config: WiFiConfig): string => {
       .replace(/\t/g, '\\t');  // 탭
   };
 
-  // 보안 타입 매핑
+  // 보안 타입 매핑 (타입에 맞춰 WPA2/3 분기 제거)
   let securityType: string;
   switch (security) {
     case 'WPA':
-    case 'WPA2':
-    case 'WPA3':
       securityType = 'WPA';
       break;
     case 'WEP':
