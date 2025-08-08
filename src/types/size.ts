@@ -71,7 +71,13 @@ export const printSizes: PrintSize[] = [
 ];
 
 export const getOrientedSize = (size: PrintSize, orientation: PrintOrientation['id']): PrintSize => {
-  if (size.id.includes('square') || orientation === 'landscape') {
+  // 정사각형은 방향 변경 없음
+  if (size.id.includes('square')) {
+    return size;
+  }
+  
+  // 가로형인 경우 원본 크기 유지
+  if (orientation === 'landscape') {
     return size;
   }
   

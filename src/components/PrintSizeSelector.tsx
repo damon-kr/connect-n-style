@@ -57,8 +57,10 @@ export const PrintSizeSelector = ({ selectedSize, selectedOrientation, onSizeSel
         <h4 className="text-sm font-medium text-foreground">크기</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {printSizes.map((size) => {
-            const isSelected = selectedSize?.id === size.id;
             const orientedSize = getOrientedSize(size, selectedOrientation);
+            const isSelected = selectedSize?.id === size.id && 
+                             selectedSize?.width === orientedSize.width && 
+                             selectedSize?.height === orientedSize.height;
             
             return (
               <Card 

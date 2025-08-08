@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { WiFiConfig, QRTemplate } from '@/types/wifi';
-import { PrintSize, PrintOrientation } from '@/types/size';
+import { PrintSize, PrintOrientation, getOrientedSize } from '@/types/size';
 import { WiFiForm } from '@/components/WiFiForm';
 import { PrintSizeSelector } from '@/components/PrintSizeSelector';
 import { TemplateSelector } from '@/components/TemplateSelector';
@@ -28,6 +28,17 @@ const Index = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string>();
   const [showWifiInfo, setShowWifiInfo] = useState(false);
+
+  // 방향 변경 핸들러
+  const handleOrientationChange = (orientation: PrintOrientation['id']) => {
+    setSelectedOrientation(orientation);
+    
+    // 선택된 크기가 있으면 방향에 맞게 업데이트
+    if (selectedSize) {
+      const updatedSize = getOrientedSize(selectedSize, orientation);
+      setSelectedSize(updatedSize);
+    }
+  };
 
   const handleDownload = (imageUrl: string) => {
     setGeneratedCount(prev => prev + 1);
@@ -133,7 +144,7 @@ const Index = () => {
                 selectedSize={selectedSize}
                 selectedOrientation={selectedOrientation}
                 onSizeSelect={setSelectedSize}
-                onOrientationSelect={setSelectedOrientation}
+                onOrientationSelect={handleOrientationChange}
               />
             </div>
 
