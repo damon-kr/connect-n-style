@@ -32,6 +32,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
   const [isDetailMode, setIsDetailMode] = useState(false);
   
   const canvasRef = useRef<QRCanvasRef>(null);
+  const lastSeedKeyRef = useRef<string>('');
 
   // 요소별 스타일 상태
   const [elementStyles, setElementStyles] = useState([
@@ -124,6 +125,48 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
   useEffect(() => {
     resetQR();
   }, [config, template, printSize, businessName, additionalText, otherText, showWifiInfo, elementStyles, resetQR]);
+
+  // 레이아웃 기반 초깃값 시딩: 템플릿/용지 변경 시 1회 적용
+  useEffect(() => {
+    if (!template || !printSize) return;
+    const key = `${template.id}-${printSize.width}x${printSize.height}`;
+    if (lastSeedKeyRef.current === key) return;
+
+    const seedElements = computeLayout(
+      template,
+      printSize,
+      {
+        businessName: businessName || '업체명',
+        additionalText: additionalText || '추가 설명',
+        otherText: otherText || '기타 문구',
+        showWifiInfo: true,
+        businessFont: 'Inter',
+        wifiInfoFont: 'Inter',
+      },
+      config.ssid || 'SSID',
+      config.password || 'PASSWORD'
+    );
+
+    const map: Record<string, any> = {};
+    seedElements.forEach((el) => (map[el.id] = el));
+
+    setElementStyles((prev) =>
+      prev.map((s) => {
+        const el = map[s.id];
+        if (!el) return s;
+        return {
+          ...s,
+          x: (el.x / printSize.width) * 100,
+          y: (el.y / printSize.height) * 100,
+          width: (el.width / printSize.width) * 100,
+          height: (el.height / printSize.height) * 100,
+          fontSize: el.textElement?.fontSize ?? s.fontSize,
+        };
+      })
+    );
+
+    lastSeedKeyRef.current = key;
+  }, [template, printSize]);
 
   // 요소 스타일 변경 핸들러
   const handleElementChange = (elementId: string, updates: any) => {
@@ -314,7 +357,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
           </div>
         </CardHeader>
         <CardContent className="p-3">
-          {qrImage && printSize ? (
+          {printSize ? (
             <div className="space-y-3">
               {isDetailMode ? (
                 <DraggablePreview
@@ -358,7 +401,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
                     </div>
                     
                     {/* QR Code */}
-                    {qrImage && printSize && (() => {
+                    {printSize && (() => {
                       const containerWidth = Math.min(400, printSize.width);
                       const containerHeight = Math.min(400, printSize.height);
                       const scale = Math.min(containerWidth / printSize.width, containerHeight / printSize.height);
@@ -384,12 +427,16 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
                               border: template?.aiGeneratedBackground ? '1px solid rgba(255,255,255,0.2)' : 'none'
                             }}
                           >
-                            <img 
-                              src={qrImage} 
-                              alt="QR Code" 
-                              className="w-full h-full object-contain"
-                              draggable={false}
-                            />
+                            {qrImage ? (
+                              <img 
+                                src={qrImage} 
+                                alt="QR Code" 
+                                className="w-full h-full object-contain"
+                                draggable={false}
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">QR 생성 후 표시</div>
+                            )}
                           </div>
                         </div>
                       );
@@ -473,9 +520,10 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
             </div>
           ) : (
             <div className="text-center text-muted-foreground py-16 border-2 border-dashed border-muted rounded-lg">
-              QR 코드를 먼저 생성해주세요
+              인쇄 크기를 먼저 선택해주세요
             </div>
           )}
+
         </CardContent>
       </Card>
 
