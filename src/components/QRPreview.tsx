@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { WiFiConfig, QRTemplate } from '@/types/wifi';
 import { PrintSize } from '@/types/size';
 import { QRCustomizer } from '@/components/QRCustomizer';
-import { ElementCustomizer, ElementStyle } from '@/components/ElementCustomizer';
+import { DraggablePreview } from '@/components/DraggablePreview';
 import { CPVModal } from '@/components/CPVModal';
 import { AdInterstitial } from '@/components/AdInterstitial';
 import { QRCanvas, QRCanvasRef } from '@/components/QRCanvas';
@@ -27,11 +27,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const [businessName, setBusinessName] = useState('');
   const [additionalText, setAdditionalText] = useState('');
   const [otherText, setOtherText] = useState('');
-  const [businessFont, setBusinessFont] = useState('inter');
-  const [fontSize, setFontSize] = useState(18);
-  const [fontWeight, setFontWeight] = useState<'normal' | 'bold'>('bold');
   const [showWifiInfo, setShowWifiInfo] = useState(false);
-  const [wifiInfoFont, setWifiInfoFont] = useState('inter');
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
   const [pendingAction, setPendingAction] = useState<'download' | 'export' | 'generate' | null>(null);
   const [isDetailMode, setIsDetailMode] = useState(false);
@@ -40,20 +36,20 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const canvasRef = useRef<QRCanvasRef>(null);
 
   // 요소별 스타일 상태
-  const [elementStyles, setElementStyles] = useState<ElementStyle[]>([
+  const [elementStyles, setElementStyles] = useState([
     {
       id: 'business',
       name: '업체명',
       visible: true,
       fontSize: 28,
       fontFamily: 'Inter',
-      fontWeight: 'bold',
+      fontWeight: 'bold' as const,
       color: '#1F2937',
       x: 50,
       y: 20,
       width: 85,
       height: 15,
-      textAlign: 'center',
+      textAlign: 'center' as const,
     },
     {
       id: 'description',
@@ -61,13 +57,13 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       visible: true,
       fontSize: 16,
       fontFamily: 'Inter',
-      fontWeight: 'normal',
+      fontWeight: 'normal' as const,
       color: '#6B7280',
       x: 50,
       y: 85,
       width: 85,
       height: 10,
-      textAlign: 'center',
+      textAlign: 'center' as const,
     },
     {
       id: 'other',
@@ -75,13 +71,13 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       visible: false,
       fontSize: 14,
       fontFamily: 'Inter',
-      fontWeight: 'normal',
+      fontWeight: 'normal' as const,
       color: '#6B7280',
       x: 50,
       y: 95,
       width: 80,
       height: 8,
-      textAlign: 'center',
+      textAlign: 'center' as const,
     },
     {
       id: 'qr',
@@ -89,13 +85,13 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       visible: true,
       fontSize: 16,
       fontFamily: 'Inter',
-      fontWeight: 'normal',
+      fontWeight: 'normal' as const,
       color: '#000000',
       x: 50,
       y: 50,
       width: 35,
       height: 35,
-      textAlign: 'center',
+      textAlign: 'center' as const,
     },
     {
       id: 'wifi-ssid',
@@ -103,13 +99,13 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       visible: true,
       fontSize: 18,
       fontFamily: 'Inter',
-      fontWeight: 'bold',
+      fontWeight: 'bold' as const,
       color: '#1F2937',
       x: 50,
       y: 75,
       width: 85,
       height: 12,
-      textAlign: 'center',
+      textAlign: 'center' as const,
     },
     {
       id: 'wifi-password',
@@ -117,22 +113,22 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       visible: true,
       fontSize: 16,
       fontFamily: 'Inter',
-      fontWeight: 'normal',
+      fontWeight: 'normal' as const,
       color: '#6B7280',
       x: 50,
       y: 87,
       width: 85,
       height: 10,
-      textAlign: 'center',
+      textAlign: 'center' as const,
     },
   ]);
 
   useEffect(() => {
     resetQR();
-  }, [config, template, printSize, businessName, additionalText, otherText, businessFont, fontSize, fontWeight, showWifiInfo, wifiInfoFont, elementStyles, resetQR]);
+  }, [config, template, printSize, businessName, additionalText, otherText, showWifiInfo, elementStyles, resetQR]);
 
   // 요소 스타일 변경 핸들러
-  const handleElementChange = (elementId: string, updates: Partial<ElementStyle>) => {
+  const handleElementChange = (elementId: string, updates: any) => {
     setElementStyles(prev => 
       prev.map(element => 
         element.id === elementId 
@@ -153,7 +149,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     setShowCPVModal(false);
   };
 
-  // QR 생성 함수 - 훅에서 가져온 함수 사용
+  // QR 생성 함수
   const handleGenerateQR = async () => {
     if (!template || !config.ssid || !printSize) {
       toast.error('WiFi 정보와 템플릿, 인쇄 크기를 먼저 설정해주세요');
@@ -183,7 +179,6 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // 항상 최신 레이아웃과 QR로 캔버스 렌더링 후 내보내기
     await canvas.renderToCanvas();
 
     if (pendingAction === 'download') {
@@ -220,11 +215,10 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     setPendingAction(null);
   };
 
-  // 레이아웃 계산 (프리뷰/캔버스 공용) - 요소 스타일 반영
+  // 레이아웃 계산
   const layoutElements = (() => {
     if (!template || !printSize) return [] as any[];
     
-    // 기본 레이아웃 계산
     const baseElements = computeLayout(
       template,
       printSize,
@@ -233,14 +227,13 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         additionalText,
         otherText,
         showWifiInfo,
-        businessFont,
-        wifiInfoFont,
+        businessFont: 'Inter',
+        wifiInfoFont: 'Inter',
       },
       config.ssid,
       config.password
     );
 
-    // 요소 스타일 적용
     return baseElements.map(element => {
       const style = elementStyles.find(s => s.id === element.id);
       if (style && element.textElement) {
@@ -283,20 +276,8 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
             onAdditionalTextChange={setAdditionalText}
             otherText={otherText}
             onOtherTextChange={setOtherText}
-            businessFont={businessFont}
-            onBusinessFontChange={setBusinessFont}
-            fontSize={fontSize}
-            onFontSizeChange={setFontSize}
-            fontWeight={fontWeight}
-            onFontWeightChange={setFontWeight}
             showWifiInfo={showWifiInfo}
             onShowWifiInfoChange={setShowWifiInfo}
-            wifiInfoFont={wifiInfoFont}
-            onWifiInfoFontChange={setWifiInfoFont}
-            textPosition={null}
-            onTextPositionChange={() => {}}
-            wifiInfoPosition={null}
-            onWifiInfoPositionChange={() => {}}
           />
           
           {/* QR Generation Button */}
@@ -322,14 +303,6 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         </CardContent>
       </Card>
 
-      {/* Element Customizer - 상세 조정 모드에서만 표시 */}
-      {isDetailMode && (
-        <ElementCustomizer
-          elements={elementStyles}
-          onElementChange={handleElementChange}
-        />
-      )}
-
       {/* Preview */}
       <Card>
         <CardHeader className="pb-2">
@@ -352,138 +325,153 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         <CardContent className="p-3">
           {qrImage && printSize ? (
             <div className="space-y-3">
-              {/* Preview Container */}
-              <div 
-                className="relative bg-white border-2 border-dashed border-gray-300 mx-auto overflow-hidden w-full max-w-full"
-                style={{
-                  width: '100%',
-                  maxWidth: `min(100vw - 3rem, 400px)`,
-                  height: `${Math.min(300, printSize.height * (Math.min(window.innerWidth - 48, 400) / printSize.width))}px`,
-                  aspectRatio: `${printSize.width} / ${printSize.height}`
-                }}
-              >
-                {/* Background */}
-                <div 
-                  className="absolute inset-0"
-                  style={{ backgroundColor: template?.backgroundColor || '#ffffff' }}
-                >
-                  {/* AI 생성 배경 이미지 */}
-                  {template?.aiGeneratedBackground && (
-                    <div 
-                      className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-                      style={{ 
-                        backgroundImage: `url(${template.aiGeneratedBackground})`,
-                        filter: 'brightness(1.0) contrast(1.1)'
-                      }}
-                    />
-                  )}
-                </div>
-                
-                {/* QR Code - 피그마 디자인 기반 정확한 위치 */}
-                {qrImage && (
-                  <div
-                    className="absolute"
+              {isDetailMode ? (
+                <DraggablePreview
+                  qrImage={qrImage}
+                  printSize={printSize}
+                  template={template}
+                  elementStyles={elementStyles}
+                  onElementChange={handleElementChange}
+                  businessName={businessName}
+                  additionalText={additionalText}
+                  otherText={otherText}
+                  showWifiInfo={showWifiInfo}
+                  config={config}
+                />
+              ) : (
+                <>
+                  {/* 일반 미리보기 */}
+                  <div 
+                    className="relative bg-white border-2 border-dashed border-gray-300 mx-auto overflow-hidden w-full max-w-full"
                     style={{
-                      left: `${(printSize.width / 2 - 80) * (Math.min(400, printSize.width) / printSize.width)}px`,
-                      top: `${(printSize.height / 2 - 80) * (Math.min(400, printSize.height) / printSize.height)}px`,
-                      width: `${160 * (Math.min(400, printSize.width) / printSize.width)}px`,
-                      height: `${160 * (Math.min(400, printSize.width) / printSize.width)}px`,
-                      zIndex: 20
+                      width: '100%',
+                      maxWidth: `min(100vw - 3rem, 400px)`,
+                      height: `${Math.min(300, printSize.height * (Math.min(window.innerWidth - 48, 400) / printSize.width))}px`,
+                      aspectRatio: `${printSize.width} / ${printSize.height}`
                     }}
                   >
+                    {/* Background */}
                     <div 
-                      className="w-full h-full p-2 rounded-xl"
-                      style={{
-                        background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.98)' : 'transparent',
-                        backdropFilter: template?.aiGeneratedBackground ? 'blur(12px)' : 'none',
-                        boxShadow: template?.aiGeneratedBackground ? '0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.3)' : 'none',
-                        border: template?.aiGeneratedBackground ? '1px solid rgba(255,255,255,0.2)' : 'none'
-                      }}
+                      className="absolute inset-0"
+                      style={{ backgroundColor: template?.backgroundColor || '#ffffff' }}
                     >
-                      <img 
-                        src={qrImage} 
-                        alt="QR Code" 
-                        className="w-full h-full object-contain"
-                        draggable={false}
-                      />
+                      {template?.aiGeneratedBackground && (
+                        <div 
+                          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+                          style={{ 
+                            backgroundImage: `url(${template.aiGeneratedBackground})`,
+                            filter: 'brightness(1.0) contrast(1.1)'
+                          }}
+                        />
+                      )}
                     </div>
+                    
+                    {/* QR Code */}
+                    {qrImage && (
+                      <div
+                        className="absolute"
+                        style={{
+                          left: `${(printSize.width / 2 - 80) * (Math.min(400, printSize.width) / printSize.width)}px`,
+                          top: `${(printSize.height / 2 - 80) * (Math.min(400, printSize.height) / printSize.height)}px`,
+                          width: `${160 * (Math.min(400, printSize.width) / printSize.width)}px`,
+                          height: `${160 * (Math.min(400, printSize.width) / printSize.width)}px`,
+                          zIndex: 20
+                        }}
+                      >
+                        <div 
+                          className="w-full h-full p-2 rounded-xl"
+                          style={{
+                            background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.98)' : 'transparent',
+                            backdropFilter: template?.aiGeneratedBackground ? 'blur(12px)' : 'none',
+                            boxShadow: template?.aiGeneratedBackground ? '0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.3)' : 'none',
+                            border: template?.aiGeneratedBackground ? '1px solid rgba(255,255,255,0.2)' : 'none'
+                          }}
+                        >
+                          <img 
+                            src={qrImage} 
+                            alt="QR Code" 
+                            className="w-full h-full object-contain"
+                            draggable={false}
+                          />
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Text Elements */}
+                    {layoutElements.filter(el => el.type === 'text').map((element) => {
+                      if (!element.textElement?.visible) return null;
+                      
+                      const containerWidth = Math.min(400, printSize.width);
+                      const containerHeight = Math.min(400, printSize.height);
+                      const scaleX = containerWidth / printSize.width;
+                      const scaleY = containerHeight / printSize.height;
+                      const scale = Math.min(scaleX, scaleY);
+                      
+                      return (
+                        <div
+                          key={element.id}
+                          style={{
+                            position: 'absolute',
+                            left: `${element.x * scale}px`,
+                            top: `${element.y * scale}px`,
+                            width: `${element.width * scale}px`,
+                            height: `${element.height * scale}px`,
+                            fontSize: `${element.textElement.fontSize * scale}px`,
+                            fontFamily: element.textElement.fontFamily,
+                            fontWeight: element.textElement.fontWeight,
+                            color: element.textElement.color,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            textAlign: element.textElement.textAlign || 'center',
+                            lineHeight: '1.2',
+                            zIndex: 20,
+                            background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.95)' : 'transparent',
+                            padding: template?.aiGeneratedBackground ? '8px 12px' : '0',
+                            borderRadius: template?.aiGeneratedBackground ? '8px' : '0',
+                            backdropFilter: template?.aiGeneratedBackground ? 'blur(8px)' : 'none',
+                            boxShadow: template?.aiGeneratedBackground ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
+                          }}
+                        >
+                          {element.textElement.text}
+                        </div>
+                      );
+                    })}
                   </div>
-                )}
-                
-                {/* Text Elements - 피그마 디자인 기반 정확한 스케일링 */}
-                {layoutElements.filter(el => el.type === 'text').map((element) => {
-                  if (!element.textElement?.visible) return null;
                   
-                  // 피그마 디자인 기반 정확한 스케일링 계산
-                  const containerWidth = Math.min(400, printSize.width);
-                  const containerHeight = Math.min(400, printSize.height);
-                  const scaleX = containerWidth / printSize.width;
-                  const scaleY = containerHeight / printSize.height;
-                  const scale = Math.min(scaleX, scaleY); // 일관된 스케일링
-                  
-                  return (
-                    <div
-                      key={element.id}
-                      style={{
-                        position: 'absolute',
-                        left: `${element.x * scale}px`,
-                        top: `${element.y * scale}px`,
-                        width: `${element.width * scale}px`,
-                        height: `${element.height * scale}px`,
-                        fontSize: `${element.textElement.fontSize * scale}px`,
-                        fontFamily: element.textElement.fontFamily,
-                        fontWeight: element.textElement.fontWeight,
-                        color: element.textElement.color,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        textAlign: element.textElement.textAlign || 'center',
-                        lineHeight: '1.2',
-                        zIndex: 20,
-                        background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.95)' : 'transparent',
-                        padding: template?.aiGeneratedBackground ? '8px 12px' : '0',
-                        borderRadius: template?.aiGeneratedBackground ? '8px' : '0',
-                        backdropFilter: template?.aiGeneratedBackground ? 'blur(8px)' : 'none',
-                        boxShadow: template?.aiGeneratedBackground ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
-                      }}
+                  {/* Download Buttons */}
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3">
+                    <Button 
+                      onClick={handleDownload} 
+                      disabled={!qrImage}
+                      className="h-8 text-xs"
                     >
-                      {element.textElement.text}
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {/* Download Buttons */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-3">
-                <Button 
-                  onClick={handleDownload} 
-                  disabled={!qrImage}
-                  className="h-8 text-xs"
-                >
-                  <Download size={12} className="mr-1" />
-                  PNG 다운로드
-                </Button>
-                
-                <Button 
-                  onClick={handlePDFExport} 
-                  disabled={!qrImage}
-                  variant="outline"
-                  className="h-8 text-xs"
-                >
-                  <FileText size={12} className="mr-1" />
-                  PDF 다운로드
-                </Button>
-                
-                <Button 
-                  onClick={() => onShare(qrImage || undefined)} 
-                  disabled={!qrImage}
-                  variant="outline"
-                  className="h-8 text-xs"
-                >
-                  <Share2 size={12} className="mr-1" />
-                  공유하기
-                </Button>
-              </div>
+                      <Download size={12} className="mr-1" />
+                      PNG 다운로드
+                    </Button>
+                    
+                    <Button 
+                      onClick={handlePDFExport} 
+                      disabled={!qrImage}
+                      variant="outline"
+                      className="h-8 text-xs"
+                    >
+                      <FileText size={12} className="mr-1" />
+                      PDF 다운로드
+                    </Button>
+                    
+                    <Button 
+                      onClick={() => onShare(qrImage || undefined)} 
+                      disabled={!qrImage}
+                      variant="outline"
+                      className="h-8 text-xs"
+                    >
+                      <Share2 size={12} className="mr-1" />
+                      공유하기
+                    </Button>
+                  </div>
+                </>
+              )}
             </div>
           ) : (
             <div className="text-center text-muted-foreground py-16 border-2 border-dashed border-muted rounded-lg">

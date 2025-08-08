@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Eye, Edit3, Download, Share2, Settings } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Eye, Edit3, Download, Share2, Settings, Clock } from 'lucide-react';
 
 interface CPVModalProps {
   isOpen: boolean;
@@ -19,6 +20,28 @@ export const CPVModal: React.FC<CPVModalProps> = ({
   mode,
   onModeChange,
 }) => {
+  const [timeLeft, setTimeLeft] = useState(30);
+  const [canChangeMode, setCanChangeMode] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      setTimeLeft(30);
+      setCanChangeMode(false);
+      
+      const timer = setInterval(() => {
+        setTimeLeft((prev) => {
+          if (prev <= 1) {
+            setCanChangeMode(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [isOpen]);
+
   const features = [
     {
       icon: <Eye size={20} className="text-blue-500" />,
@@ -38,6 +61,8 @@ export const CPVModal: React.FC<CPVModalProps> = ({
     f.title.includes(mode === 'preview' ? '미리보기' : '상세 조정')
   );
 
+  const progressPercentage = ((30 - timeLeft) / 30) * 100;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl">
@@ -49,6 +74,36 @@ export const CPVModal: React.FC<CPVModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
+          {/* 타이머 섹션 */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Clock size={20} className="text-orange-500" />
+                모드 변경 대기
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-orange-600 mb-2">
+                  {timeLeft}초
+                </div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  30초가 지나면 모드 변경이 가능합니다
+                </p>
+                <Progress value={progressPercentage} className="w-full" />
+              </div>
+              
+              {canChangeMode && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 text-green-700">
+                    <div className="w-2 h-2 bg-green-500 rounded-full" />
+                    <span className="text-sm font-medium">모드 변경이 가능합니다!</span>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
           {/* 현재 모드 정보 */}
           <Card>
             <CardHeader>
@@ -85,11 +140,13 @@ export const CPVModal: React.FC<CPVModalProps> = ({
                     feature.title.includes(mode === 'preview' ? '미리보기' : '상세 조정')
                       ? 'ring-2 ring-primary'
                       : ''
-                  }`}
+                  } ${!canChangeMode ? 'opacity-50 cursor-not-allowed' : ''}`}
                   onClick={() => {
-                    const newMode = feature.title.includes('미리보기') ? 'preview' : 'detail';
-                    onModeChange(newMode);
-                    onClose();
+                    if (canChangeMode) {
+                      const newMode = feature.title.includes('미리보기') ? 'preview' : 'detail';
+                      onModeChange(newMode);
+                      onClose();
+                    }
                   }}
                 >
                   <CardHeader>

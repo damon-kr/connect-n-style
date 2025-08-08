@@ -27,6 +27,7 @@ const Index = () => {
   const [generatedCount, setGeneratedCount] = useState(0);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string>();
+  const [showWifiInfo, setShowWifiInfo] = useState(false);
 
   const handleDownload = (imageUrl: string) => {
     setGeneratedCount(prev => prev + 1);
@@ -125,7 +126,7 @@ const Index = () => {
                 <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   1
                 </div>
-                <h2 className="text-lg font-semibold">인쇄 크기</h2>
+                <h2 className="text-lg font-semibold">인쇄크기선택</h2>
               </div>
               
               <PrintSizeSelector 
@@ -142,12 +143,14 @@ const Index = () => {
                 <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   2
                 </div>
-                <h2 className="text-lg font-semibold">WiFi 정보</h2>
+                <h2 className="text-lg font-semibold">WiFi 네트워크 정보</h2>
               </div>
               
               <WiFiForm 
                 config={wifiConfig} 
-                onConfigChange={setWifiConfig} 
+                onConfigChange={setWifiConfig}
+                showWifiInfo={showWifiInfo}
+                onShowWifiInfoChange={setShowWifiInfo}
               />
             </div>
 
@@ -157,7 +160,7 @@ const Index = () => {
                 <div className="w-7 h-7 bg-primary text-primary-foreground rounded-full flex items-center justify-center text-xs font-semibold">
                   3
                 </div>
-                <h2 className="text-lg font-semibold">디자인 선택</h2>
+                <h2 className="text-lg font-semibold">디자인 템플릿 선택</h2>
               </div>
               
               {selectedSize && (
@@ -182,9 +185,6 @@ const Index = () => {
                 </div>
                 <h2 className="text-lg font-semibold">텍스트 커스터마이징</h2>
               </div>
-              
-              {/* 사이드바 광고 */}
-              <AdBanner position="sidebar" className="mb-6" />
               
               {selectedSize && selectedTemplate && (
                 <QRPreview 

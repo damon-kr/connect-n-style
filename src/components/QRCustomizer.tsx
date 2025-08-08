@@ -1,262 +1,99 @@
-import { useState } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Palette, Type, Move, Wifi } from 'lucide-react';
-import { TextPositionSelector, TextPosition, textPositions } from '@/components/TextPositionSelector';
-
-interface TextElement {
-  id: string;
-  text: string;
-  font: string;
-  x: number;
-  y: number;
-}
+import { Separator } from '@/components/ui/separator';
+import { Type, FileText, MessageSquare } from 'lucide-react';
 
 interface QRCustomizerProps {
   businessName: string;
-  onBusinessNameChange: (name: string) => void;
+  onBusinessNameChange: (value: string) => void;
   additionalText: string;
-  onAdditionalTextChange: (text: string) => void;
+  onAdditionalTextChange: (value: string) => void;
   otherText: string;
-  onOtherTextChange: (text: string) => void;
-  businessFont: string;
-  onBusinessFontChange: (font: string) => void;
-  textPosition: TextPosition | null;
-  onTextPositionChange: (position: TextPosition) => void;
-  fontSize: number;
-  onFontSizeChange: (size: number) => void;
-  fontWeight: 'normal' | 'bold';
-  onFontWeightChange: (weight: 'normal' | 'bold') => void;
+  onOtherTextChange: (value: string) => void;
   showWifiInfo: boolean;
-  onShowWifiInfoChange: (show: boolean) => void;
-  wifiInfoFont: string;
-  onWifiInfoFontChange: (font: string) => void;
-  wifiInfoPosition: TextPosition | null;
-  onWifiInfoPositionChange: (position: TextPosition) => void;
+  onShowWifiInfoChange: (value: boolean) => void;
+  businessFont?: string;
+  onBusinessFontChange?: (value: string) => void;
+  fontSize?: number;
+  onFontSizeChange?: (value: number) => void;
+  fontWeight?: 'normal' | 'bold';
+  onFontWeightChange?: (value: 'normal' | 'bold') => void;
+  textPosition?: any;
+  onTextPositionChange?: (value: any) => void;
+  wifiInfoPosition?: any;
+  onWifiInfoPositionChange?: (value: any) => void;
+  wifiInfoFont?: string;
+  onWifiInfoFontChange?: (value: string) => void;
 }
 
-const fonts = [
-  // 한글 폰트 (우선순위)
-  { id: 'noto-sans-kr', name: 'Noto Sans KR (깔끔한 고딕)', fontFamily: '"Noto Sans KR", sans-serif' },
-  { id: 'nanum-gothic', name: '나눔고딕 (전통적)', fontFamily: '"Nanum Gothic", sans-serif' },
-  { id: 'nanum-myeongjo', name: '나눔명조 (세리프)', fontFamily: '"Nanum Myeongjo", serif' },
-  { id: 'black-han-sans', name: '블랙한산스 (강렬함)', fontFamily: '"Black Han Sans", sans-serif' },
-  { id: 'jua', name: '주아체 (친근함)', fontFamily: 'Jua, sans-serif' },
-  { id: 'stylish', name: '스타일리시 (세련됨)', fontFamily: 'Stylish, sans-serif' },
-  { id: 'gamja-flower', name: '감자꽃 (손글씨)', fontFamily: '"Gamja Flower", cursive' },
-  { id: 'gaegu', name: '개구 (캐주얼)', fontFamily: 'Gaegu, cursive' },
-  { id: 'do-hyeon', name: '도현체 (모던)', fontFamily: '"Do Hyeon", sans-serif' },
-  { id: 'sunflower', name: '해바라기 (부드러움)', fontFamily: 'Sunflower, sans-serif' },
-  // 영문 폰트
-  { id: 'inter', name: 'Inter (기본)', fontFamily: 'Inter, sans-serif' },
-  { id: 'roboto', name: 'Roboto', fontFamily: 'Roboto, sans-serif' },
-  { id: 'open-sans', name: 'Open Sans', fontFamily: '"Open Sans", sans-serif' },
-  { id: 'lato', name: 'Lato', fontFamily: 'Lato, sans-serif' },
-  { id: 'montserrat', name: 'Montserrat', fontFamily: 'Montserrat, sans-serif' },
-  { id: 'poppins', name: 'Poppins', fontFamily: 'Poppins, sans-serif' },
-  { id: 'playfair', name: 'Playfair Display', fontFamily: '"Playfair Display", serif' },
-  { id: 'merriweather', name: 'Merriweather', fontFamily: 'Merriweather, serif' },
-  { id: 'oswald', name: 'Oswald', fontFamily: 'Oswald, sans-serif' },
-];
-
-export const QRCustomizer = ({ 
-  businessName, 
-  onBusinessNameChange, 
-  additionalText, 
+export const QRCustomizer: React.FC<QRCustomizerProps> = ({
+  businessName,
+  onBusinessNameChange,
+  additionalText,
   onAdditionalTextChange,
   otherText,
   onOtherTextChange,
-  businessFont, 
-  onBusinessFontChange,
-  textPosition,
-  onTextPositionChange,
-  fontSize,
-  onFontSizeChange,
-  fontWeight,
-  onFontWeightChange,
   showWifiInfo,
   onShowWifiInfoChange,
-  wifiInfoFont,
-  onWifiInfoFontChange,
-  wifiInfoPosition,
-  onWifiInfoPositionChange
-}: QRCustomizerProps) => {
+}) => {
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <Palette size={16} className="text-primary" />
-          텍스트 커스터마이징
-        </CardTitle>
-      </CardHeader>
-        <CardContent className="p-3">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {/* 업체명 및 부가설명 섹션 */}
-            <div className="space-y-3 p-2 border rounded-lg">
-              <div className="flex items-center gap-2">
-                <Type size={14} className="text-primary" />
-                <h3 className="text-sm font-semibold">업체명 & 부가설명</h3>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="space-y-1">
-                  <Label htmlFor="businessName" className="text-xs">업체명 또는 타이틀</Label>
-                  <Input
-                    id="businessName"
-                    placeholder="예: 스타벅스 강남점"
-                    value={businessName}
-                    onChange={(e) => onBusinessNameChange(e.target.value)}
-                    className="text-xs"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <Label htmlFor="additionalText" className="text-xs">추가 설명</Label>
-                  <Input
-                    id="additionalText"
-                    placeholder="예: Free WiFi Available"
-                    value={additionalText}
-                    onChange={(e) => onAdditionalTextChange(e.target.value)}
-                    className="text-xs"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <Label htmlFor="otherText" className="text-xs">기타 문구</Label>
-                  <Input
-                    id="otherText"
-                    placeholder="예: 스캔하여 WiFi 연결"
-                    value={otherText}
-                    onChange={(e) => onOtherTextChange(e.target.value)}
-                    className="text-xs"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <Label className="text-xs">업체명/설명 폰트</Label>
-                  <Select value={businessFont} onValueChange={onBusinessFontChange}>
-                    <SelectTrigger className="text-xs">
-                      <SelectValue placeholder="폰트 선택" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fonts.map((font) => (
-                        <SelectItem key={font.id} value={font.id} className="text-xs">
-                          <span style={{ fontFamily: font.fontFamily }} className="truncate">
-                            {font.name}
-                          </span>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="space-y-1">
-                  <Label className="text-xs">업체명/설명 위치</Label>
-                  <TextPositionSelector 
-                    selectedPosition={textPosition}
-                    onPositionChange={onTextPositionChange}
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <Label className="text-xs">폰트 크기: {fontSize}px</Label>
-                  <Slider
-                    value={[fontSize]}
-                    onValueChange={(value) => onFontSizeChange(value[0])}
-                    max={32}
-                    min={12}
-                    step={2}
-                    className="w-full"
-                  />
-                </div>
-                
-                <div className="space-y-1">
-                  <Label className="text-xs">폰트 굵기</Label>
-                  <Select value={fontWeight} onValueChange={onFontWeightChange}>
-                    <SelectTrigger className="text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="normal" className="text-xs">일반</SelectItem>
-                      <SelectItem value="bold" className="text-xs">굵게</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-            
-            {/* WiFi 정보 섹션 */}
-            <div className="space-y-3 p-2 border rounded-lg">
-              <div className="flex items-center gap-2">
-                <Wifi size={14} className="text-primary" />
-                <h3 className="text-sm font-semibold">WiFi 정보</h3>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="showWifiInfo" className="text-xs">WiFi 정보 표시</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      id="showWifiInfo"
-                      checked={showWifiInfo}
-                      onCheckedChange={onShowWifiInfoChange}
-                    />
-                    <span className="text-xs text-muted-foreground leading-tight">
-                      네트워크 이름과 비밀번호 표시
-                    </span>
-                  </div>
-                </div>
-                
-                {showWifiInfo && (
-                  <>
-                    <div className="space-y-1">
-                      <Label className="text-xs">WiFi 정보 폰트</Label>
-                      <Select value={wifiInfoFont} onValueChange={onWifiInfoFontChange}>
-                        <SelectTrigger className="text-xs">
-                          <SelectValue placeholder="폰트 선택" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {fonts.map((font) => (
-                            <SelectItem key={font.id} value={font.id} className="text-xs">
-                              <span style={{ fontFamily: font.fontFamily }} className="truncate">
-                                {font.name}
-                              </span>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <Label className="text-xs">WiFi 정보 위치</Label>
-                      <TextPositionSelector 
-                        selectedPosition={wifiInfoPosition}
-                        onPositionChange={onWifiInfoPositionChange}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-              
-              <div className="p-2 bg-muted/50 rounded-lg">
-                <p className="text-xs text-muted-foreground mb-1">
-                  💡 <strong>커스터마이징 팁</strong>
-                </p>
-                <ul className="text-[10px] text-muted-foreground space-y-0.5 leading-tight">
-                  <li>• 업체명과 WiFi 정보의 위치를 각각 설정할 수 있습니다</li>
-                  <li>• 각 영역마다 다른 폰트를 사용해서 강조 효과를 줄 수 있습니다</li>
-                  <li>• WiFi 정보 표시를 끄면 업체명만 표시됩니다</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-    </Card>
+    <div className="space-y-4">
+      {/* 업체명 */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium flex items-center gap-2">
+          <Type size={16} />
+          업체명
+        </Label>
+        <Input
+          placeholder="업체명을 입력하세요"
+          value={businessName}
+          onChange={(e) => onBusinessNameChange(e.target.value)}
+        />
+      </div>
+
+      <Separator />
+
+      {/* 추가 설명 */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium flex items-center gap-2">
+          <MessageSquare size={16} />
+          추가 설명
+        </Label>
+        <Input
+          placeholder="추가 설명을 입력하세요"
+          value={additionalText}
+          onChange={(e) => onAdditionalTextChange(e.target.value)}
+        />
+      </div>
+
+      <Separator />
+
+      {/* 기타 문구 */}
+      <div className="space-y-2">
+        <Label className="text-sm font-medium flex items-center gap-2">
+          <FileText size={16} />
+          기타 문구
+        </Label>
+        <Input
+          placeholder="기타 문구를 입력하세요"
+          value={otherText}
+          onChange={(e) => onOtherTextChange(e.target.value)}
+        />
+      </div>
+
+      <Separator />
+
+      {/* WiFi 정보 표시 */}
+      <div className="flex items-center justify-between">
+        <Label className="text-sm font-medium">WiFi 정보 표시</Label>
+        <Switch
+          checked={showWifiInfo}
+          onCheckedChange={onShowWifiInfoChange}
+        />
+      </div>
+    </div>
   );
 };

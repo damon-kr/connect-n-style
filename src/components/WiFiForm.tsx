@@ -13,9 +13,11 @@ import { HelpTooltip } from '@/components/HelpTooltip';
 interface WiFiFormProps {
   config: WiFiConfig;
   onConfigChange: (config: WiFiConfig) => void;
+  showWifiInfo?: boolean;
+  onShowWifiInfoChange?: (show: boolean) => void;
 }
 
-export const WiFiForm = ({ config, onConfigChange }: WiFiFormProps) => {
+export const WiFiForm = ({ config, onConfigChange, showWifiInfo, onShowWifiInfoChange }: WiFiFormProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
 
@@ -143,6 +145,24 @@ export const WiFiForm = ({ config, onConfigChange }: WiFiFormProps) => {
             onCheckedChange={(checked) => handleInputChange('hidden', checked)}
           />
         </div>
+
+        {/* WiFi 정보 표시 옵션 */}
+        {onShowWifiInfoChange && (
+          <div className="flex items-center justify-between py-2 border-t pt-3">
+            <div className="space-y-1">
+              <Label className="text-xs font-medium">
+                QR 코드에 WiFi 정보 표시
+              </Label>
+              <p className="text-xs text-muted-foreground">
+                네트워크 이름과 비밀번호를 QR 코드에 포함
+              </p>
+            </div>
+            <Switch
+              checked={showWifiInfo || false}
+              onCheckedChange={onShowWifiInfoChange}
+            />
+          </div>
+        )}
 
         {errors.length > 0 && (
           <div className="bg-destructive/10 border border-destructive/20 rounded-md p-3">
