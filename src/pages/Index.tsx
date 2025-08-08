@@ -133,7 +133,21 @@ const Index = () => {
                 selectedSize={selectedSize}
                 selectedOrientation={selectedOrientation}
                 onSizeSelect={setSelectedSize}
-                onOrientationSelect={setSelectedOrientation}
+                onOrientationSelect={(orientation) => {
+                  setSelectedOrientation(orientation);
+                  setSelectedSize((prev) => {
+                    if (!prev) return prev as any;
+                    if (prev.id.includes('square')) return prev;
+                    const isLandscape = prev.width >= prev.height;
+                    if (orientation === 'portrait' && isLandscape) {
+                      return { ...prev, width: prev.height, height: prev.width };
+                    }
+                    if (orientation === 'landscape' && !isLandscape) {
+                      return { ...prev, width: prev.height, height: prev.width };
+                    }
+                    return prev;
+                  });
+                }}
               />
             </div>
 
@@ -193,6 +207,7 @@ const Index = () => {
                   printSize={selectedSize}
                   onDownload={handleDownload}
                   onShare={handleShare}
+                  showWifiInfo={showWifiInfo}
                 />
               )}
               

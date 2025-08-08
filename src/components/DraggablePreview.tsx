@@ -110,13 +110,36 @@ export const DraggablePreview: React.FC<DraggablePreviewProps> = ({
     });
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handleTouchStart = (e: React.TouchEvent, elementId: string) => {
+    const touch = e.touches[0];
+    setDraggedElement(elementId);
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    setDragOffset({
+      x: touch.clientX - rect.left,
+      y: touch.clientY - rect.top,
+    });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent | MouseEvent) => {
     if (!draggedElement || !containerRef.current) return;
 
     const containerRect = containerRef.current.getBoundingClientRect();
-    const x = ((e.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
-    const y = ((e.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
+    const x = ((('clientX' in e ? e.clientX : 0) - containerRect.left - dragOffset.x) / containerRect.width) * 100;
+    const y = ((('clientY' in e ? e.clientY : 0) - containerRect.top - dragOffset.y) / containerRect.height) * 100;
 
+    onElementChange(draggedElement, {
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y)),
+    });
+  };
+
+  const handleTouchMove = (e: React.TouchEvent | TouchEvent) => {
+    if (!draggedElement || !containerRef.current) return;
+    const touch = 'touches' in e ? e.touches[0] : (e as TouchEvent).touches[0];
+    if (!touch) return;
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const x = ((touch.clientX - containerRect.left - dragOffset.x) / containerRect.width) * 100;
+    const y = ((touch.clientY - containerRect.top - dragOffset.y) / containerRect.height) * 100;
     onElementChange(draggedElement, {
       x: Math.max(0, Math.min(100, x)),
       y: Math.max(0, Math.min(100, y)),
@@ -127,21 +150,31 @@ export const DraggablePreview: React.FC<DraggablePreviewProps> = ({
     setDraggedElement(null);
   };
 
+  const handleTouchEnd = () => {
+    setDraggedElement(null);
+  };
+
   useEffect(() => {
     if (draggedElement) {
-      document.addEventListener('mousemove', handleMouseMove as any);
+      const mm = handleMouseMove as any;
+      document.addEventListener('mousemove', mm);
       document.addEventListener('mouseup', handleMouseUp);
+      const tm = handleTouchMove as any;
+      document.addEventListener('touchmove', tm, { passive: false } as any);
+      document.addEventListener('touchend', handleTouchEnd);
       return () => {
-        document.removeEventListener('mousemove', handleMouseMove as any);
+        document.removeEventListener('mousemove', mm);
         document.removeEventListener('mouseup', handleMouseUp);
+        document.removeEventListener('touchmove', tm as any);
+        document.removeEventListener('touchend', handleTouchEnd);
       };
     }
   }, [draggedElement, dragOffset]);
 
-  if (!qrImage || !printSize) {
+  if (!printSize) {
     return (
       <div className="text-center text-muted-foreground py-16 border-2 border-dashed border-muted rounded-lg">
-        QR 코드를 먼저 생성해주세요
+        용지 크기를 먼저 선택해주세요
       </div>
     );
   }
@@ -168,6 +201,8 @@ export const DraggablePreview: React.FC<DraggablePreviewProps> = ({
             }}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             {/* 배경 */}
             <div
