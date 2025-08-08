@@ -6,24 +6,29 @@ export const generateWiFiQRString = (config: WiFiConfig): string => {
 
   // Escape special characters per WiFi QR standard
   const esc = (s: string) =>
-    s.replace(/\\/g, '\\\\') // escape backslash first
+    s.replace(/\\/g, "\\\\") // escape backslash first
      .replace(/;/g, '\\;')
      .replace(/,/g, '\\,')
      .replace(/:/g, '\\:')
      .replace(/"/g, '\\"');
 
-  // Security mapping: use WPA (covers WPA/WPA2), WEP, nopass
+  // Security mapping: WPA (covers WPA/WPA2), WEP, or nopass
   let securityType: string = security;
   if (security === 'WPA') {
     securityType = 'WPA';
+  } else if (security === 'WEP') {
+    securityType = 'WEP';
+  } else if (security === 'nopass') {
+    securityType = 'nopass';
   }
 
-  const hiddenFlag = hidden ? 'true' : 'false';
   const sPart = `S:${esc(ssid)};`;
   const pPart = securityType !== 'nopass' && password ? `P:${esc(password)};` : '';
   const tPart = `T:${securityType};`;
+  const hPart = hidden ? 'H:true;' : '';
 
-  const qrString = `WIFI:${tPart}${sPart}${pPart}H:${hiddenFlag};;`;
+  // Standard format: omit H when false; include only when true
+  const qrString = `WIFI:${tPart}${sPart}${pPart}${hPart};`;
   console.log('Generated WiFi QR String:', qrString);
   return qrString;
 };
@@ -37,8 +42,9 @@ export const generateQRCode = async (config: WiFiConfig, template: any): Promise
       width: 512,
       margin: 2,
       color: {
-        dark: template?.textColor || '#000000',
-        light: template?.backgroundColor || '#FFFFFF'
+        // Force high-contrast colors for maximum scan reliability
+        dark: '#000000',
+        light: '#FFFFFF'
       },
       errorCorrectionLevel: 'M' as const // 중간 수준 오류 보정으로 안정성 향상
     };

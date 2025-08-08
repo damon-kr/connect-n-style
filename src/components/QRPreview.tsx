@@ -125,6 +125,9 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
     );
   })();
 
+  // Helper for scale
+  const scale = printSize ? Math.min(400, printSize.width) / printSize.width : 1;
+  const qrElement = layoutElements.find((el) => el.id === 'qr');
 
   return (
     <div className="space-y-6">
@@ -209,7 +212,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                   className="absolute inset-0"
                   style={{ backgroundColor: template?.backgroundColor || '#ffffff' }}
                 >
-                  {/* AI 생성 배경 이미지 */}
+                  {/* AI 생성 배경 이미지 (비활성화되어도 안전) */}
                   {template?.aiGeneratedBackground && (
                     <div 
                       className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -221,25 +224,23 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                   )}
                 </div>
                 
-                {/* QR Code */}
-                {qrImage && (
+                {/* QR Code - use computed layout */}
+                {qrImage && qrElement && (
                   <div
                     className="absolute"
                     style={{
-                      left: `${(printSize.width / 2 - 80) * (Math.min(400, printSize.width) / printSize.width)}px`,
-                      top: `${(printSize.height / 2 - 80) * (Math.min(400, printSize.height) / printSize.height)}px`,
-                      width: `${160 * (Math.min(400, printSize.width) / printSize.width)}px`,
-                      height: `${160 * (Math.min(400, printSize.width) / printSize.width)}px`,
+                      left: `${qrElement.x * scale}px`,
+                      top: `${qrElement.y * scale}px`,
+                      width: `${qrElement.width * scale}px`,
+                      height: `${qrElement.height * scale}px`,
                       zIndex: 20
                     }}
                   >
                     <div 
                       className="w-full h-full p-2 rounded-xl"
                       style={{
-                        background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.98)' : 'transparent',
-                        backdropFilter: template?.aiGeneratedBackground ? 'blur(12px)' : 'none',
-                        boxShadow: template?.aiGeneratedBackground ? '0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.3)' : 'none',
-                        border: template?.aiGeneratedBackground ? '1px solid rgba(255,255,255,0.2)' : 'none'
+                        background: 'rgba(255,255,255,0.98)',
+                        boxShadow: '0 6px 20px rgba(0,0,0,0.08)'
                       }}
                     >
                       <img 
@@ -261,25 +262,21 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                       key={element.id}
                       style={{
                         position: 'absolute',
-                        left: `${element.x * (Math.min(400, printSize.width) / printSize.width)}px`,
-                        top: `${element.y * (Math.min(400, printSize.height) / printSize.height)}px`,
-                        width: `${element.width * (Math.min(400, printSize.width) / printSize.width)}px`,
-                        height: `${element.height * (Math.min(400, printSize.width) / printSize.width)}px`,
-                        fontSize: `${element.textElement.fontSize * (Math.min(400, printSize.width) / printSize.width)}px`,
+                        left: `${element.x * scale}px`,
+                        top: `${element.y * scale}px`,
+                        width: `${element.width * scale}px`,
+                        height: `${element.height * scale}px`,
+                        fontSize: `${element.textElement.fontSize * scale}px`,
                         fontFamily: template?.structure?.fontFamily || element.textElement.fontFamily,
                         fontWeight: element.textElement.fontWeight,
-                        color: template?.structure?.colors?.text || (template?.aiGeneratedBackground ? '#ffffff' : element.textElement.color),
+                        color: template?.structure?.colors?.text || element.textElement.color,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         textAlign: template?.structure?.textAlign || 'center',
                         lineHeight: '1.2',
                         zIndex: 20,
-                        background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.95)' : 'transparent',
-                        padding: template?.aiGeneratedBackground ? '8px 12px' : '0',
-                        borderRadius: template?.aiGeneratedBackground ? '8px' : '0',
-                        backdropFilter: template?.aiGeneratedBackground ? 'blur(8px)' : 'none',
-                        boxShadow: template?.aiGeneratedBackground ? '0 2px 8px rgba(0,0,0,0.2)' : 'none'
+                        background: 'transparent'
                       }}
                     >
                       {element.textElement.text}
