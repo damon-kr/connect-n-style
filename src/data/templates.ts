@@ -1,6 +1,6 @@
 import { QRTemplate } from '@/types/wifi';
 
-// Figma 기반 4가지 기본 템플릿
+// Figma 기반 4가지 기본 템플릿 - 개선된 버전
 export const qrTemplates: QRTemplate[] = [
   {
     id: 'modern-clean',
@@ -19,10 +19,10 @@ export const qrTemplates: QRTemplate[] = [
       layout: 'center',
       fontFamily: 'Noto Sans KR',
       fontSizes: { 
-        storeName: 24, 
-        wifiInfo: 16, 
-        description: 14,
-        qrLabel: 12
+        storeName: 28, 
+        wifiInfo: 18, 
+        description: 16,
+        qrLabel: 14
       },
       textAlign: 'center',
       spacing: {
@@ -34,13 +34,13 @@ export const qrTemplates: QRTemplate[] = [
       decorativeElements: ['clean-border'],
       qrPosition: {
         x: '50%',
-        y: '45%',
+        y: '50%',
         size: 'medium'
       },
       textPositions: {
-        storeName: { x: '50%', y: '15%' },
+        storeName: { x: '50%', y: '20%' },
         wifiInfo: { x: '50%', y: '75%' },
-        description: { x: '50%', y: '88%' }
+        description: { x: '50%', y: '85%' }
       },
       colors: {
         primary: '#2563EB',
@@ -68,10 +68,10 @@ export const qrTemplates: QRTemplate[] = [
       layout: 'vertical_centered',
       fontFamily: 'Nanum Myeongjo',
       fontSizes: { 
-        storeName: 28, 
-        wifiInfo: 18, 
-        description: 15,
-        qrLabel: 13
+        storeName: 32, 
+        wifiInfo: 20, 
+        description: 18,
+        qrLabel: 16
       },
       textAlign: 'center',
       spacing: {
@@ -83,13 +83,13 @@ export const qrTemplates: QRTemplate[] = [
       decorativeElements: ['vintage-ornaments', 'coffee-pattern'],
       qrPosition: {
         x: '50%',
-        y: '50%',
+        y: '55%',
         size: 'large'
       },
       textPositions: {
-        storeName: { x: '50%', y: '12%' },
-        wifiInfo: { x: '50%', y: '78%' },
-        description: { x: '50%', y: '92%' }
+        storeName: { x: '50%', y: '15%' },
+        wifiInfo: { x: '50%', y: '80%' },
+        description: { x: '50%', y: '90%' }
       },
       colors: {
         primary: '#EA580C',
@@ -117,10 +117,10 @@ export const qrTemplates: QRTemplate[] = [
       layout: 'horizontal_split',
       fontFamily: 'Roboto',
       fontSizes: { 
-        storeName: 26, 
-        wifiInfo: 17, 
-        description: 14,
-        qrLabel: 12
+        storeName: 30, 
+        wifiInfo: 19, 
+        description: 16,
+        qrLabel: 14
       },
       textAlign: 'left',
       spacing: {
@@ -166,10 +166,10 @@ export const qrTemplates: QRTemplate[] = [
       layout: 'top_heavy',
       fontFamily: 'Poppins',
       fontSizes: { 
-        storeName: 32, 
-        wifiInfo: 19, 
-        description: 16,
-        qrLabel: 14
+        storeName: 36, 
+        wifiInfo: 22, 
+        description: 18,
+        qrLabel: 16
       },
       textAlign: 'center',
       spacing: {
@@ -181,12 +181,12 @@ export const qrTemplates: QRTemplate[] = [
       decorativeElements: ['gradient-overlay', 'creative-shapes'],
       qrPosition: {
         x: '50%',
-        y: '60%',
+        y: '65%',
         size: 'large'
       },
       textPositions: {
-        storeName: { x: '50%', y: '18%' },
-        wifiInfo: { x: '50%', y: '35%' },
+        storeName: { x: '50%', y: '20%' },
+        wifiInfo: { x: '50%', y: '40%' },
         description: { x: '50%', y: '90%' }
       },
       colors: {

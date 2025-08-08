@@ -4,32 +4,61 @@ import { WiFiConfig } from '@/types/wifi';
 export const generateWiFiQRString = (config: WiFiConfig): string => {
   const { ssid, password, security, hidden = false } = config;
 
-  // Escape special characters per WiFi QR standard
-  const esc = (s: string) =>
-    s.replace(/\\/g, '\\\\') // escape backslash first
-     .replace(/;/g, '\\;')
-     .replace(/,/g, '\\,')
-     .replace(/:/g, '\\:')
-     .replace(/"/g, '\\"');
+  // WiFi QR 코드 표준에 따른 특수문자 이스케이프
+  const escapeSpecialChars = (str: string): string => {
+    return str
+      .replace(/\\/g, '\\\\')  // 백슬래시를 먼저 이스케이프
+      .replace(/;/g, '\\;')    // 세미콜론
+      .replace(/,/g, '\\,')    // 쉼표
+      .replace(/:/g, '\\:')    // 콜론
+      .replace(/"/g, '\\"')    // 따옴표
+      .replace(/\n/g, '\\n')   // 개행
+      .replace(/\r/g, '\\r')   // 캐리지 리턴
+      .replace(/\t/g, '\\t');  // 탭
+  };
 
-  // Security mapping: use WPA (covers WPA/WPA2), WEP, nopass
-  let securityType: string = security;
-  if (security === 'WPA') {
-    securityType = 'WPA';
+  // 보안 타입 매핑
+  let securityType: string;
+  switch (security) {
+    case 'WPA':
+    case 'WPA2':
+    case 'WPA3':
+      securityType = 'WPA';
+      break;
+    case 'WEP':
+      securityType = 'WEP';
+      break;
+    case 'nopass':
+      securityType = 'nopass';
+      break;
+    default:
+      securityType = 'WPA';
   }
 
-  const hiddenFlag = hidden ? 'true' : 'false';
-  const sPart = `S:${esc(ssid)};`;
-  const pPart = securityType !== 'nopass' && password ? `P:${esc(password)};` : '';
-  const tPart = `T:${securityType};`;
+  // WiFi QR 코드 표준 형식: WIFI:T:WPA;S:SSID;P:Password;H:true;;
+  const parts = [
+    `T:${securityType}`,
+    `S:${escapeSpecialChars(ssid)}`,
+    ...(securityType !== 'nopass' && password ? [`P:${escapeSpecialChars(password)}`] : []),
+    `H:${hidden ? 'true' : 'false'}`
+  ];
 
-  const qrString = `WIFI:${tPart}${sPart}${pPart}H:${hiddenFlag};;`;
+  const qrString = `WIFI:${parts.join(';')};;`;
   console.log('Generated WiFi QR String:', qrString);
   return qrString;
 };
 
 export const generateQRCode = async (config: WiFiConfig, template: any): Promise<string> => {
   try {
+    // 입력 검증
+    if (!config.ssid.trim()) {
+      throw new Error('WiFi 네트워크 이름(SSID)을 입력해주세요');
+    }
+
+    if (config.security !== 'nopass' && !config.password.trim()) {
+      throw new Error('보안이 설정된 네트워크는 비밀번호가 필요합니다');
+    }
+
     const qrString = generateWiFiQRString(config);
     console.log('Generating QR for:', qrString);
     
@@ -40,10 +69,10 @@ export const generateQRCode = async (config: WiFiConfig, template: any): Promise
         dark: template?.textColor || '#000000',
         light: template?.backgroundColor || '#FFFFFF'
       },
-      errorCorrectionLevel: 'M' as const // 중간 수준 오류 보정으로 안정성 향상
+      errorCorrectionLevel: 'M' as const,
+      type: 'image/png' as const
     };
     
-    // canvas 대신 데이터 URL 직접 생성으로 안정성 향상
     const qrDataUrl = await QRCode.toDataURL(qrString, qrOptions);
     console.log('QR Code generated successfully');
     

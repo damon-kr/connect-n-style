@@ -256,16 +256,21 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                 {layoutElements.filter(el => el.type === 'text').map((element) => {
                   if (!element.textElement?.visible) return null;
                   
+                  // 스케일링 계산 수정
+                  const scaleX = Math.min(400, printSize.width) / printSize.width;
+                  const scaleY = Math.min(400, printSize.height) / printSize.height;
+                  const scale = Math.min(scaleX, scaleY); // 일관된 스케일링
+                  
                   return (
                     <div
                       key={element.id}
                       style={{
                         position: 'absolute',
-                        left: `${element.x * (Math.min(400, printSize.width) / printSize.width)}px`,
-                        top: `${element.y * (Math.min(400, printSize.height) / printSize.height)}px`,
-                        width: `${element.width * (Math.min(400, printSize.width) / printSize.width)}px`,
-                        height: `${element.height * (Math.min(400, printSize.width) / printSize.width)}px`,
-                        fontSize: `${element.textElement.fontSize * (Math.min(400, printSize.width) / printSize.width)}px`,
+                        left: `${element.x * scale}px`,
+                        top: `${element.y * scale}px`,
+                        width: `${element.width * scale}px`,
+                        height: `${element.height * scale}px`,
+                        fontSize: `${element.textElement.fontSize * scale}px`,
                         fontFamily: template?.structure?.fontFamily || element.textElement.fontFamily,
                         fontWeight: element.textElement.fontWeight,
                         color: template?.structure?.colors?.text || (template?.aiGeneratedBackground ? '#ffffff' : element.textElement.color),

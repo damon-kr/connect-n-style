@@ -36,25 +36,25 @@ export interface LayoutInputs {
   additionalText: string;
   otherText: string;
   showWifiInfo: boolean;
-  businessFont?: string; // id from select; not used directly (we rely on template structure font)
-  wifiInfoFont?: string; // kept for future use
+  businessFont?: string;
+  wifiInfoFont?: string;
 }
 
 const pctToPx = (pct: string, total: number) => {
   if (!pct.endsWith('%')) return Number(pct) || 0;
   const v = parseFloat(pct.replace('%', ''));
-  return (v / 100) * total;
+  return Math.round((v / 100) * total);
 };
 
 const sizeToRatio = (size: 'small' | 'medium' | 'large') => {
-  // Tuned by Figma reference: large is bold hero, medium default, small compact
+  // Figma 디자인 기준으로 조정된 QR 크기 비율
   switch (size) {
     case 'small':
-      return 0.28;
+      return 0.25; // 작은 QR
     case 'large':
-      return 0.42;
+      return 0.45; // 큰 QR
     default:
-      return 0.34;
+      return 0.35; // 중간 QR
   }
 };
 
@@ -66,12 +66,12 @@ export const computeLayout = (
   password?: string
 ): CanvasElement[] => {
   if (!template || !printSize || !template.structure) return [];
+  
   const { width: W, height: H } = printSize;
   const s = template.structure;
-
   const elements: CanvasElement[] = [];
 
-  // QR element
+  // QR 요소 계산 - 중앙 정렬 기준
   const qrRatio = sizeToRatio(s.qrPosition.size);
   const qrSide = Math.round(Math.min(W, H) * qrRatio);
   const qrCenterX = pctToPx(s.qrPosition.x, W);
@@ -88,18 +88,19 @@ export const computeLayout = (
     height: qrSide,
   });
 
-  // Common font/color
+  // 공통 스타일 설정
   const fontFamily = s.fontFamily || 'Noto Sans KR';
   const textColor = s.colors?.text || template.textColor || '#111827';
   const align = s.textAlign || 'center';
   const gap = s.spacing?.elementGap ?? 12;
 
-  // Business/store name
-  const storeNameX = pctToPx(s.textPositions.storeName.x, W);
-  const storeNameY = pctToPx(s.textPositions.storeName.y, H);
-  const storeWidth = Math.round(W * 0.7);
-  const storeHeight = Math.round(s.fontSizes.storeName * 1.4);
+  // 매장명 텍스트
   if (inputs.businessName) {
+    const storeNameX = pctToPx(s.textPositions.storeName.x, W);
+    const storeNameY = pctToPx(s.textPositions.storeName.y, H);
+    const storeWidth = Math.round(W * 0.8); // 더 넓은 텍스트 영역
+    const storeHeight = Math.round(s.fontSizes.storeName * 1.5); // 더 높은 텍스트 높이
+    
     elements.push({
       id: 'business',
       type: 'text',
@@ -124,12 +125,13 @@ export const computeLayout = (
     });
   }
 
-  // Additional description
-  const descX = pctToPx(s.textPositions.description.x, W);
-  const descY = pctToPx(s.textPositions.description.y, H);
-  const descWidth = Math.round(W * 0.7);
-  const descHeight = Math.round(s.fontSizes.description * 1.4);
+  // 추가 설명 텍스트
   if (inputs.additionalText) {
+    const descX = pctToPx(s.textPositions.description.x, W);
+    const descY = pctToPx(s.textPositions.description.y, H);
+    const descWidth = Math.round(W * 0.8);
+    const descHeight = Math.round(s.fontSizes.description * 1.5);
+    
     elements.push({
       id: 'description',
       type: 'text',
@@ -154,22 +156,25 @@ export const computeLayout = (
     });
   }
 
-  // Other label (optional, small)
+  // 기타 라벨 텍스트
   if (inputs.otherText) {
-    const otherWidth = Math.round(W * 0.6);
+    const otherX = pctToPx(s.textPositions.description.x, W);
+    const otherY = pctToPx(s.textPositions.description.y, H) + gap + s.fontSizes.description;
+    const otherWidth = Math.round(W * 0.7);
     const otherHeight = Math.round(s.fontSizes.qrLabel * 1.4);
+    
     elements.push({
       id: 'other',
       type: 'text',
-      x: Math.round(descX - otherWidth / 2),
-      y: Math.round(descY - otherHeight / 2 + gap + otherHeight),
+      x: Math.round(otherX - otherWidth / 2),
+      y: Math.round(otherY - otherHeight / 2),
       width: otherWidth,
       height: otherHeight,
       textElement: {
         id: 'other',
         text: inputs.otherText,
-        x: Math.round(descX - otherWidth / 2),
-        y: Math.round(descY - otherHeight / 2 + gap + otherHeight),
+        x: Math.round(otherX - otherWidth / 2),
+        y: Math.round(otherY - otherHeight / 2),
         width: otherWidth,
         height: otherHeight,
         fontSize: s.fontSizes.qrLabel,
@@ -182,14 +187,14 @@ export const computeLayout = (
     });
   }
 
-  // WiFi info (SSID + password) block
-  if (inputs.showWifiInfo) {
+  // WiFi 정보 표시
+  if (inputs.showWifiInfo && ssid) {
     const wifiX = pctToPx(s.textPositions.wifiInfo.x, W);
     const wifiY = pctToPx(s.textPositions.wifiInfo.y, H);
-    const wifiWidth = Math.round(W * 0.7);
+    const wifiWidth = Math.round(W * 0.8);
     const wifiLineHeight = Math.round(s.fontSizes.wifiInfo * 1.4);
 
-    // SSID line
+    // SSID 라인
     elements.push({
       id: 'wifi-ssid',
       type: 'text',
@@ -199,7 +204,7 @@ export const computeLayout = (
       height: wifiLineHeight,
       textElement: {
         id: 'wifi-ssid',
-        text: ssid ? `WIFI : ${ssid}` : 'WIFI :',
+        text: `WiFi: ${ssid}`,
         x: Math.round(wifiX - wifiWidth / 2),
         y: Math.round(wifiY - wifiLineHeight),
         width: wifiWidth,
@@ -213,29 +218,31 @@ export const computeLayout = (
       },
     });
 
-    // Password line
-    elements.push({
-      id: 'wifi-password',
-      type: 'text',
-      x: Math.round(wifiX - wifiWidth / 2),
-      y: Math.round(wifiY + gap * 0.6),
-      width: wifiWidth,
-      height: wifiLineHeight,
-      textElement: {
+    // 비밀번호 라인 (있는 경우만)
+    if (password && password.trim()) {
+      elements.push({
         id: 'wifi-password',
-        text: (password ?? '') !== '' ? `PW : ${password}` : 'PW :',
+        type: 'text',
         x: Math.round(wifiX - wifiWidth / 2),
-        y: Math.round(wifiY + gap * 0.6),
+        y: Math.round(wifiY + gap * 0.8),
         width: wifiWidth,
         height: wifiLineHeight,
-        fontSize: Math.max(12, Math.round(s.fontSizes.wifiInfo * 0.85)),
-        fontFamily,
-        fontWeight: 'normal',
-        color: textColor,
-        visible: true,
-        textAlign: align,
-      },
-    });
+        textElement: {
+          id: 'wifi-password',
+          text: `비밀번호: ${password}`,
+          x: Math.round(wifiX - wifiWidth / 2),
+          y: Math.round(wifiY + gap * 0.8),
+          width: wifiWidth,
+          height: wifiLineHeight,
+          fontSize: Math.max(12, Math.round(s.fontSizes.wifiInfo * 0.9)),
+          fontFamily,
+          fontWeight: 'normal',
+          color: textColor,
+          visible: true,
+          textAlign: align,
+        },
+      });
+    }
   }
 
   return elements;
