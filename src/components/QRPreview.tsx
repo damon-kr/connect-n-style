@@ -8,10 +8,11 @@ import { QRCanvas, QRCanvasRef } from '@/components/QRCanvas';
 import { useQRGeneration } from '@/hooks/useQRGeneration';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Share2, FileText, QrCode, Eye, Settings, Edit3 } from 'lucide-react';
+import { Download, Share2, FileText, QrCode, Eye, Settings, Edit3, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import { computeLayout } from '@/lib/layoutEngine';
+import { generateBackground } from '@/lib/aiBackground';
 
 interface QRPreviewProps {
   config: WiFiConfig;
@@ -28,8 +29,9 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const [otherText, setOtherText] = useState('');
   const [showWifiInfo, setShowWifiInfo] = useState(false);
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
-  const [pendingAction, setPendingAction] = useState<'download' | 'export' | 'generate' | null>(null);
+  const [pendingAction, setPendingAction] = useState<'download' | 'export' | 'generate' | 'bg' | null>(null);
   const [isDetailMode, setIsDetailMode] = useState(false);
+  const [aiBgUrl, setAiBgUrl] = useState<string | null>(null);
   
   const canvasRef = useRef<QRCanvasRef>(null);
 
@@ -123,7 +125,73 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
   useEffect(() => {
     resetQR();
+<<<<<<< HEAD
   }, [config, template, printSize, businessName, additionalText, otherText, showWifiInfo, elementStyles, resetQR]);
+=======
+  }, [config, template, printSize, showWifiInfo, resetQR]);
+
+  // 레이아웃 기반 초깃값 시딩: 템플릿/용지 변경 시 1회 적용
+  useEffect(() => {
+    if (!template || !printSize) return;
+    const key = `${template.id}-${printSize.width}x${printSize.height}`;
+    if (lastSeedKeyRef.current === key) return;
+
+    const seedElements = computeLayout(
+      template,
+      printSize,
+      {
+        businessName: businessName || '업체명',
+        additionalText: additionalText || '추가 설명',
+        otherText: otherText || '기타 문구',
+        showWifiInfo: true,
+        businessFont: template.structure?.fontFamily || 'Inter',
+        wifiInfoFont: template.structure?.fontFamily || 'Inter',
+      },
+      config.ssid || 'SSID',
+      config.password || 'PASSWORD'
+    );
+
+    const map: Record<string, any> = {};
+    seedElements.forEach((el) => (map[el.id] = el));
+
+    setElementStyles((prev) =>
+      prev.map((s) => {
+        const el = map[s.id];
+        if (!el) return s;
+        return {
+          ...s,
+          x: (el.x / printSize.width) * 100,
+          y: (el.y / printSize.height) * 100,
+          width: (el.width / printSize.width) * 100,
+          height: (el.height / printSize.height) * 100,
+          fontSize: el.textElement?.fontSize ?? s.fontSize,
+        };
+      })
+    );
+
+    lastSeedKeyRef.current = key;
+  }, [template, printSize]);
+>>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
+
+  // 템플릿 변경 시 업종별 추천 기본 문구 자동 세팅 (비어있을 때만)
+  useEffect(() => {
+    if (!template) return;
+    const cat = template.category;
+    const defaults: Record<string, { name: string; add: string; other: string }> = {
+      cafe_vintage: { name: '브라운카페', add: '스캔 후 즉시 연결', other: '오늘의 원두: 에티오피아' },
+      restaurant_elegant: { name: '한우정', add: 'QR 스캔으로 WiFi 연결', other: '런치 타임 11:30-14:30' },
+      hospital_clean: { name: '스마일치과', add: '대기 중 무료 WiFi', other: '진료시간: 09:00-18:00' },
+      modern_bold: { name: 'BAR 1984', add: 'SCAN & CONNECT', other: 'HAPPY HOUR 6-8PM' },
+      friendly_colorful: { name: '키즈랜드', add: '보호자용 무료 WiFi', other: '놀이터 이용수칙을 지켜주세요' },
+      minimal_business: { name: '오피스 라운지', add: '방문객 전용 WiFi', other: '문의 02-1234-5678' },
+      tag_style: { name: '브랜드샵', add: 'Scan to join WiFi', other: '신상품 입고' },
+    };
+    const d = (cat && defaults[cat]) || defaults.minimal_business;
+    setBusinessName((v) => v || d.name);
+    setAdditionalText((v) => v || d.add);
+    setOtherText((v) => v || d.other);
+    setAiBgUrl(template.aiGeneratedBackground || null);
+  }, [template]);
 
   // 요소 스타일 변경 핸들러
   const handleElementChange = (elementId: string, updates: any) => {
@@ -302,15 +370,40 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
               <Eye size={14} />
               미리보기
             </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDetailModeToggle}
-              className="flex items-center gap-2"
-            >
-              <Edit3 size={14} />
-              {isDetailMode ? '미리보기 모드' : '상세 조정 모드'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (!template) return;
+                  try {
+                    setPendingAction('bg');
+                    toast.info('AI 배경을 생성 중...');
+                    const img = await generateBackground(template);
+                    setAiBgUrl(img);
+                    toast.success('AI 배경 생성 완료');
+                  } catch (e) {
+                    toast.error('AI 배경 생성 실패');
+                  } finally {
+                    setPendingAction(null);
+                  }
+                }}
+                className="flex items-center gap-2"
+                disabled={!template || pendingAction === 'bg'}
+              >
+                <Sparkles size={14} />
+                배경 AI 생성
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDetailModeToggle}
+                className="flex items-center gap-2"
+              >
+                <Edit3 size={14} />
+                {isDetailMode ? '미리보기 모드' : '상세 조정 모드'}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-3">
@@ -346,11 +439,11 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                       className="absolute inset-0"
                       style={{ backgroundColor: template?.backgroundColor || '#ffffff' }}
                     >
-                      {template?.aiGeneratedBackground && (
+                      {aiBgUrl && (
                         <div 
                           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                           style={{ 
-                            backgroundImage: `url(${template.aiGeneratedBackground})`,
+                            backgroundImage: `url(${aiBgUrl})`,
                             filter: 'brightness(1.0) contrast(1.1)'
                           }}
                         />
@@ -417,7 +510,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                             textAlign: element.textElement.textAlign || 'center',
                             lineHeight: '1.2',
                             zIndex: 20,
-                            background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.95)' : 'transparent',
+                            background: aiBgUrl ? 'rgba(255,255,255,0.95)' : 'transparent',
                             padding: template?.aiGeneratedBackground ? '8px 12px' : '0',
                             borderRadius: template?.aiGeneratedBackground ? '8px' : '0',
                             backdropFilter: template?.aiGeneratedBackground ? 'blur(8px)' : 'none',
@@ -475,7 +568,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
       {/* Hidden Canvas for Export */}
       <QRCanvas
         ref={canvasRef}
-        template={template}
+        template={template ? { ...template, aiGeneratedBackground: aiBgUrl || template.aiGeneratedBackground } : null}
         printSize={printSize}
         elements={layoutElements as any}
         qrDataUrl={qrImage}
