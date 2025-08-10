@@ -8,10 +8,11 @@ import { QRCanvas, QRCanvasRef } from '@/components/QRCanvas';
 import { useQRGeneration } from '@/hooks/useQRGeneration';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Share2, FileText, QrCode, Eye, Settings, Edit3 } from 'lucide-react';
+import { Download, Share2, FileText, QrCode, Eye, Settings, Edit3, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 import { computeLayout } from '@/lib/layoutEngine';
+import { generateBackground } from '@/lib/aiBackground';
 
 interface QRPreviewProps {
   config: WiFiConfig;
@@ -28,8 +29,9 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
   const [additionalText, setAdditionalText] = useState('');
   const [otherText, setOtherText] = useState('');
   const [showAdInterstitial, setShowAdInterstitial] = useState(false);
-  const [pendingAction, setPendingAction] = useState<'download' | 'export' | 'generate' | null>(null);
+  const [pendingAction, setPendingAction] = useState<'download' | 'export' | 'generate' | 'bg' | null>(null);
   const [isDetailMode, setIsDetailMode] = useState(false);
+  const [aiBgUrl, setAiBgUrl] = useState<string | null>(null);
   
   const canvasRef = useRef<QRCanvasRef>(null);
   const lastSeedKeyRef = useRef<string>('');
@@ -185,6 +187,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
     setBusinessName((v) => v || d.name);
     setAdditionalText((v) => v || d.add);
     setOtherText((v) => v || d.other);
+    setAiBgUrl(template.aiGeneratedBackground || null);
   }, [template]);
 
   // 요소 스타일 변경 핸들러
@@ -364,15 +367,40 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
               <Eye size={14} />
               미리보기
             </CardTitle>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDetailModeToggle}
-              className="flex items-center gap-2"
-            >
-              <Edit3 size={14} />
-              {isDetailMode ? '미리보기 모드' : '상세 조정 모드'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={async () => {
+                  if (!template) return;
+                  try {
+                    setPendingAction('bg');
+                    toast.info('AI 배경을 생성 중...');
+                    const img = await generateBackground(template);
+                    setAiBgUrl(img);
+                    toast.success('AI 배경 생성 완료');
+                  } catch (e) {
+                    toast.error('AI 배경 생성 실패');
+                  } finally {
+                    setPendingAction(null);
+                  }
+                }}
+                className="flex items-center gap-2"
+                disabled={!template || pendingAction === 'bg'}
+              >
+                <Sparkles size={14} />
+                배경 AI 생성
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDetailModeToggle}
+                className="flex items-center gap-2"
+              >
+                <Edit3 size={14} />
+                {isDetailMode ? '미리보기 모드' : '상세 조정 모드'}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-3">
@@ -408,11 +436,11 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
                       className="absolute inset-0"
                       style={{ backgroundColor: template?.backgroundColor || '#ffffff' }}
                     >
-                      {template?.aiGeneratedBackground && (
+                      {aiBgUrl && (
                         <div 
                           className="absolute inset-0 bg-cover bg-center bg-no-repeat"
                           style={{ 
-                            backgroundImage: `url(${template.aiGeneratedBackground})`,
+                            backgroundImage: `url(${aiBgUrl})`,
                             filter: 'brightness(1.0) contrast(1.1)'
                           }}
                         />
@@ -490,7 +518,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
                             textAlign: element.textElement.textAlign || 'center',
                             lineHeight: '1.2',
                             zIndex: 20,
-                            background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.95)' : 'transparent',
+                            background: aiBgUrl ? 'rgba(255,255,255,0.95)' : 'transparent',
                             padding: template?.aiGeneratedBackground ? '8px 12px' : '0',
                             borderRadius: template?.aiGeneratedBackground ? '8px' : '0',
                             backdropFilter: template?.aiGeneratedBackground ? 'blur(8px)' : 'none',
@@ -549,7 +577,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
       {/* Hidden Canvas for Export */}
       <QRCanvas
         ref={canvasRef}
-        template={template}
+        template={template ? { ...template, aiGeneratedBackground: aiBgUrl || template.aiGeneratedBackground } : null}
         printSize={printSize}
         elements={layoutElements as any}
         qrDataUrl={qrImage}

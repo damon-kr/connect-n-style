@@ -62,38 +62,117 @@ export const QRCanvas = forwardRef<QRCanvasRef, QRCanvasProps>(
           reject(new Error('Canvas not ready'));
           return;
         }
-        
+
         const ctx = canvas.getContext('2d');
         if (!ctx) {
           reject(new Error('Canvas context not available'));
           return;
         }
-        
+
         canvas.width = printSize.width;
         canvas.height = printSize.height;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // 배경색 (AI 배경 제거, 고정 컬러)
-        ctx.fillStyle = template.backgroundColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        renderElements(ctx, qrImage);
-        resolve();
+
+        const drawBackground = () => {
+          if (template.aiGeneratedBackground) {
+            const bg = new Image();
+            bg.onload = () => {
+              // cover
+              const scale = Math.max(canvas.width / bg.width, canvas.height / bg.height);
+              const dw = bg.width * scale;
+              const dh = bg.height * scale;
+              const dx = (canvas.width - dw) / 2;
+              const dy = (canvas.height - dh) / 2;
+              ctx.drawImage(bg, dx, dy, dw, dh);
+              renderDecorations(ctx);
+              renderElements(ctx, qrImage);
+              resolve();
+            };
+            bg.onerror = () => {
+              // fallback to solid color
+              ctx.fillStyle = template.backgroundColor;
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              renderDecorations(ctx);
+              renderElements(ctx, qrImage);
+              resolve();
+            };
+            bg.src = template.aiGeneratedBackground;
+          } else {
+            // solid background
+            ctx.fillStyle = template.backgroundColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            renderDecorations(ctx);
+            renderElements(ctx, qrImage);
+            resolve();
+          }
+        };
+
+        drawBackground();
       });
     };
+    const renderDecorations = (ctx: CanvasRenderingContext2D) => {
+      const w = printSize?.width || 0;
+      const h = printSize?.height || 0;
+      const decos = template?.decorativeElements || [];
+      ctx.save();
 
+      if (decos.includes('clean-border') || decos.includes('frame') || decos.includes('elegant-frame')) {
+        ctx.strokeStyle = template.accentColor || '#000';
+        ctx.lineWidth = decos.includes('elegant-frame') ? 4 : 2;
+        const r = 16;
+        ctx.beginPath();
+        // rounded rect
+        ctx.moveTo(r, 0);
+        ctx.arcTo(w, 0, w, h, r);
+        ctx.arcTo(w, h, 0, h, r);
+        ctx.arcTo(0, h, 0, 0, r);
+        ctx.arcTo(0, 0, w, 0, r);
+        ctx.closePath();
+        ctx.stroke();
+      }
+
+      if (decos.includes('corners')) {
+        ctx.strokeStyle = template.textColor || '#111';
+        ctx.lineWidth = 3;
+        const len = Math.min(w, h) * 0.06;
+        // corners
+        const drawCorner = (x: number, y: number, sx: number, sy: number) => {
+          ctx.beginPath();
+          ctx.moveTo(x, y + sy * len);
+          ctx.lineTo(x, y);
+          ctx.lineTo(x + sx * len, y);
+          ctx.stroke();
+        };
+        drawCorner(12, 12, 1, 1);
+        drawCorner(w - 12, 12, -1, 1);
+        drawCorner(12, h - 12, 1, -1);
+        drawCorner(w - 12, h - 12, -1, -1);
+      }
+
+      if (decos.includes('geometric-shapes') || decos.includes('color-accents')) {
+        // subtle circle behind QR area
+        ctx.fillStyle = `${template.accentColor}22`;
+        const r = Math.min(w, h) * 0.18;
+        ctx.beginPath();
+        ctx.arc(w * 0.72, h * 0.48, r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+    };
     const renderElements = (ctx: CanvasRenderingContext2D, qrImage: string) => {
       // QR 코드 렌더링
       const qrElement = elements.find(el => el.type === 'qr');
       if (qrElement) {
         const img = new Image();
         img.onload = () => {
-          // QR 코드 가독성을 위한 흰색 배경 (템플릿 배경이 어두운 경우 대비)
+          // QR 코드 가독성을 위한 흰색 배경
           ctx.fillStyle = 'rgba(255, 255, 255, 0.96)';
           ctx.fillRect(qrElement.x - 10, qrElement.y - 10, qrElement.width + 20, qrElement.height + 20);
-          
+
           // QR 코드 그리기
           ctx.drawImage(img, qrElement.x, qrElement.y, qrElement.width, qrElement.height);
-          
+
           // 텍스트 요소들 렌더링
           renderTextElements(ctx);
         };
