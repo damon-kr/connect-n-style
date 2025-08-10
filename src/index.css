@@ -98,20 +98,108 @@ All colors MUST be HSL.
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-primary-foreground: 0 0% 98%;
     --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 8% 98%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .shadow-elegant {
+    box-shadow: var(--shadow-elegant);
+  }
+
+  .shadow-glow {
+    box-shadow: var(--shadow-glow);
+  }
+
+  /* 템플릿 선택 관련 스타일 */
+  .template-card {
+    @apply transition-all duration-300 hover:shadow-md;
+  }
+
+  .template-card:hover {
+    transform: scale(1.02);
+  }
+
+  .template-card.selected {
+    @apply ring-2 ring-primary shadow-lg;
+    transform: scale(1.05);
+  }
+
+  /* AI 생성기 관련 스타일 */
+  .ai-generator {
+    @apply border-2 border-dashed border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5;
+  }
+
+  .keyword-badge {
+    @apply cursor-pointer transition-all hover:scale-105;
+  }
+
+  .keyword-badge.selected {
+    @apply text-white;
+  }
+
+  /* 피그마 스타일 미리보기 */
+  .figma-preview {
+    @apply relative overflow-hidden;
+  }
+
+  .figma-preview .store-name {
+    @apply font-bold truncate;
+    background-color: #FEF3C7;
+  }
+
+  .figma-preview .wifi-info {
+    @apply truncate italic;
+    background-color: #D1FAE5;
+  }
+
+  .figma-preview .description {
+    @apply truncate;
+    background-color: #DBEAFE;
+  }
+
+  /* 애니메이션 */
+  @keyframes sparkle {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.1); }
+  }
+
+  .animate-sparkle {
+    animation: sparkle 2s ease-in-out infinite;
+  }
+
+  /* 호버 효과 */
+  .hover-lift {
+    @apply transition-transform duration-300;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+
+  /* 그라데이션 배경 */
+  .bg-gradient-subtle {
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.05), hsl(var(--secondary) / 0.05));
+  }
+
+  /* 텍스트 그라데이션 */
+  .text-gradient {
+    @apply bg-gradient-hero bg-clip-text text-transparent;
   }
 }
