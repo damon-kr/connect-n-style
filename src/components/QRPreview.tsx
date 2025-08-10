@@ -125,10 +125,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
   useEffect(() => {
     resetQR();
-<<<<<<< HEAD
   }, [config, template, printSize, businessName, additionalText, otherText, showWifiInfo, elementStyles, resetQR]);
-=======
-  }, [config, template, printSize, showWifiInfo, resetQR]);
 
   // 레이아웃 기반 초깃값 시딩: 템플릿/용지 변경 시 1회 적용
   useEffect(() => {
@@ -171,7 +168,6 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
 
     lastSeedKeyRef.current = key;
   }, [template, printSize]);
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
 
   // 템플릿 변경 시 업종별 추천 기본 문구 자동 세팅 (비어있을 때만)
   useEffect(() => {

@@ -16,43 +16,6 @@ const calculateDynamicLayout = (printSize: PrintSize, template: QRTemplate) => {
   const { width, height } = printSize;
   const aspectRatio = width / height;
   const isLandscape = aspectRatio > 1;
-<<<<<<< HEAD
-  const isPortrait = aspectRatio < 1;
-  const isSquare = Math.abs(aspectRatio - 1) < 0.1;
-  
-  // QR 코드 크기 동적 계산
-  const qrSizeRatio = isLandscape ? 0.25 : isPortrait ? 0.35 : 0.3;
-  const qrSize = Math.min(width, height) * qrSizeRatio;
-  
-  // 텍스트 크기 동적 계산
-  const baseFontSize = Math.min(width, height) * 0.02;
-  const businessFontSize = baseFontSize * 1.8;
-  const wifiFontSize = baseFontSize * 1.2;
-  const descFontSize = baseFontSize * 0.9;
-  
-  // 위치 계산
-  const qrX = width / 2 - qrSize / 2;
-  const qrY = height / 2 - qrSize / 2;
-  
-  // 업체명 위치 (상단)
-  const businessY = height * 0.15;
-  const businessHeight = businessFontSize * 1.5;
-  
-  // WiFi 정보 위치 (QR 아래)
-  const wifiY = qrY + qrSize + height * 0.05;
-  const wifiHeight = wifiFontSize * 2.5;
-  
-  // 추가 설명 위치 (하단)
-  const descY = height * 0.85;
-  const descHeight = descFontSize * 1.5;
-  
-  return {
-    qr: { x: qrX, y: qrY, size: qrSize },
-    business: { y: businessY, height: businessHeight, fontSize: businessFontSize },
-    wifi: { y: wifiY, height: wifiHeight, fontSize: wifiFontSize },
-    desc: { y: descY, height: descHeight, fontSize: descFontSize }
-=======
-
   const structure = template.structure;
 
   const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
@@ -104,7 +67,6 @@ const calculateDynamicLayout = (printSize: PrintSize, template: QRTemplate) => {
     wifi: { y: wifiY, height: textHeightWifi, fontSize: wifiFontSize },
     desc: { y: descY, height: textHeightDesc, fontSize: descFontSize },
     other: { y: otherY, height: textHeightDesc, fontSize: descFontSize * 0.9 }
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
   };
 };
 
@@ -119,6 +81,7 @@ export const computeLayout = (
   const dynamicLayout = calculateDynamicLayout(printSize, template);
   const structure = template.structure;
   const pct = (s: string) => parseFloat(s);
+  const isLandscape = width / height > 1;
 
   const elements: any[] = [];
 
@@ -147,26 +110,16 @@ export const computeLayout = (
     elements.push({
       id: 'business',
       type: 'text',
-<<<<<<< HEAD
-      x: width * 0.1,
-      y: dynamicLayout.business.y,
-      width: width * 0.8,
-=======
       x: left,
       y: dynamicLayout.business.y,
       width: leftTextWidth,
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
       height: dynamicLayout.business.height,
       textElement: {
         text: config.businessName,
         fontSize: dynamicLayout.business.fontSize,
         fontFamily: config.businessFont || structure?.fontFamily || 'Inter',
         fontWeight: 'bold',
-<<<<<<< HEAD
-        color: template.colors?.text || '#1F2937',
-=======
         color: structure?.colors?.text || template.textColor || '#1F2937',
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
         visible: true,
         textAlign,
       },
@@ -182,27 +135,17 @@ export const computeLayout = (
     elements.push({
       id: 'wifi-ssid',
       type: 'text',
-<<<<<<< HEAD
-      x: width * 0.1,
-      y: dynamicLayout.wifi.y,
-      width: width * 0.8,
-=======
       x: left,
       y: dynamicLayout.wifi.y,
       width: rightTextWidth,
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
       height: dynamicLayout.wifi.height / 2,
       textElement: {
         text: `WiFi: ${ssid}`,
         fontSize: dynamicLayout.wifi.fontSize,
         fontFamily: config.wifiInfoFont || structure?.fontFamily || 'Inter',
         fontWeight: 'bold',
-<<<<<<< HEAD
-        color: template.colors?.text || '#1F2937',
-=======
         fontStyle: 'italic',
         color: structure?.colors?.text || template.textColor || '#1F2937',
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
         visible: true,
         textAlign: 'center',
       },
@@ -213,27 +156,17 @@ export const computeLayout = (
       elements.push({
         id: 'wifi-password',
         type: 'text',
-<<<<<<< HEAD
-        x: width * 0.1,
-        y: dynamicLayout.wifi.y + dynamicLayout.wifi.height / 2,
-        width: width * 0.8,
-=======
         x: left,
         y: dynamicLayout.wifi.y + dynamicLayout.wifi.height / 2,
         width: rightTextWidth,
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
         height: dynamicLayout.wifi.height / 2,
         textElement: {
           text: `비밀번호: ${password}`,
           fontSize: dynamicLayout.wifi.fontSize * 0.9,
           fontFamily: config.wifiInfoFont || structure?.fontFamily || 'Inter',
           fontWeight: 'normal',
-<<<<<<< HEAD
-          color: template.colors?.secondary || '#6B7280',
-=======
           fontStyle: 'italic',
           color: structure?.colors?.secondary || template.accentColor || '#6B7280',
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
           visible: true,
           textAlign: 'center',
         },
@@ -248,26 +181,16 @@ export const computeLayout = (
     elements.push({
       id: 'description',
       type: 'text',
-<<<<<<< HEAD
-      x: width * 0.1,
-      y: dynamicLayout.desc.y,
-      width: width * 0.8,
-=======
       x: left,
       y: dynamicLayout.desc.y,
       width: leftTextWidth,
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
       height: dynamicLayout.desc.height,
       textElement: {
         text: config.additionalText,
         fontSize: dynamicLayout.desc.fontSize,
         fontFamily: config.businessFont || structure?.fontFamily || 'Inter',
         fontWeight: 'normal',
-<<<<<<< HEAD
-        color: template.colors?.secondary || '#6B7280',
-=======
         color: structure?.colors?.secondary || template.accentColor || '#6B7280',
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
         visible: true,
         textAlign,
       },
@@ -281,18 +204,6 @@ export const computeLayout = (
     elements.push({
       id: 'other',
       type: 'text',
-<<<<<<< HEAD
-      x: width * 0.1,
-      y: dynamicLayout.desc.y + dynamicLayout.desc.height + height * 0.02,
-      width: width * 0.8,
-      height: dynamicLayout.desc.height,
-      textElement: {
-        text: config.otherText,
-        fontSize: dynamicLayout.desc.fontSize * 0.9,
-        fontFamily: config.businessFont || 'Inter',
-        fontWeight: 'normal',
-        color: template.colors?.secondary || '#6B7280',
-=======
       x: left,
       y: dynamicLayout.other.y,
       width: leftTextWidth,
@@ -303,7 +214,6 @@ export const computeLayout = (
         fontFamily: config.businessFont || structure?.fontFamily || 'Inter',
         fontWeight: 'normal',
         color: structure?.colors?.secondary || template.accentColor || '#6B7280',
->>>>>>> aa28bd714ad8f36d7e43a24a3d24ffd0bbe237c2
         visible: true,
         textAlign,
       },
