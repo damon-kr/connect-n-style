@@ -140,8 +140,8 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
         additionalText: additionalText || '추가 설명',
         otherText: otherText || '기타 문구',
         showWifiInfo: true,
-        businessFont: 'Inter',
-        wifiInfoFont: 'Inter',
+        businessFont: template.structure?.fontFamily || 'Inter',
+        wifiInfoFont: template.structure?.fontFamily || 'Inter',
       },
       config.ssid || 'SSID',
       config.password || 'PASSWORD'
@@ -167,6 +167,25 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare, sh
 
     lastSeedKeyRef.current = key;
   }, [template, printSize]);
+
+  // 템플릿 변경 시 업종별 추천 기본 문구 자동 세팅 (비어있을 때만)
+  useEffect(() => {
+    if (!template) return;
+    const cat = template.category;
+    const defaults: Record<string, { name: string; add: string; other: string }> = {
+      cafe_vintage: { name: '브라운카페', add: '스캔 후 즉시 연결', other: '오늘의 원두: 에티오피아' },
+      restaurant_elegant: { name: '한우정', add: 'QR 스캔으로 WiFi 연결', other: '런치 타임 11:30-14:30' },
+      hospital_clean: { name: '스마일치과', add: '대기 중 무료 WiFi', other: '진료시간: 09:00-18:00' },
+      modern_bold: { name: 'BAR 1984', add: 'SCAN & CONNECT', other: 'HAPPY HOUR 6-8PM' },
+      friendly_colorful: { name: '키즈랜드', add: '보호자용 무료 WiFi', other: '놀이터 이용수칙을 지켜주세요' },
+      minimal_business: { name: '오피스 라운지', add: '방문객 전용 WiFi', other: '문의 02-1234-5678' },
+      tag_style: { name: '브랜드샵', add: 'Scan to join WiFi', other: '신상품 입고' },
+    };
+    const d = (cat && defaults[cat]) || defaults.minimal_business;
+    setBusinessName((v) => v || d.name);
+    setAdditionalText((v) => v || d.add);
+    setOtherText((v) => v || d.other);
+  }, [template]);
 
   // 요소 스타일 변경 핸들러
   const handleElementChange = (elementId: string, updates: any) => {

@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Wifi, QrCode, Download, Sparkles, Heart, Github } from 'lucide-react';
 import { toast } from 'sonner';
+import { AITemplateGenerator } from '@/components/AITemplateGenerator';
 
 const NewIndex = () => {
   const [wifiConfig, setWifiConfig] = useState<WiFiConfig>({
@@ -26,6 +27,7 @@ const NewIndex = () => {
   const [generatedCount, setGeneratedCount] = useState(0);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string>();
+  const [templates, setTemplates] = useState<QRTemplate[]>([]);
 
   const handleDownload = (imageUrl: string) => {
     setGeneratedCount(prev => prev + 1);
@@ -119,11 +121,12 @@ const NewIndex = () => {
                   </div>
                   <h2 className="text-lg font-semibold">디자인</h2>
                 </div>
+                <AITemplateGenerator onTemplateGenerated={setTemplates} />
                 {selectedSize ? (
                   <TemplateSelector 
+                    templates={templates}
                     selectedTemplate={selectedTemplate}
                     onTemplateSelect={setSelectedTemplate}
-                    printSize={selectedSize}
                   />
                 ) : (
                   <div className="text-center text-muted-foreground py-4">

@@ -10,9 +10,8 @@ import { AdBanner } from '@/components/AdBanner';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Wifi, QrCode, Download, Sparkles, Heart, Github } from 'lucide-react';
-import { qrTemplates } from '@/data/templates';
 import { toast } from 'sonner';
-
+import { AITemplateGenerator } from '@/components/AITemplateGenerator';
 const Index = () => {
   const [wifiConfig, setWifiConfig] = useState<WiFiConfig>({
     ssid: '',
@@ -28,6 +27,7 @@ const Index = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string>();
   const [showWifiInfo, setShowWifiInfo] = useState(false);
+  const [templates, setTemplates] = useState<QRTemplate[]>([]);
 
   const handleDownload = (imageUrl: string) => {
     setGeneratedCount(prev => prev + 1);
@@ -176,9 +176,18 @@ const Index = () => {
                 </div>
                 <h2 className="text-lg font-semibold">디자인 선택</h2>
               </div>
+
+              {/* AI 템플릿 생성기 */}
+              <AITemplateGenerator
+                onTemplateGenerated={(t) => {
+                  setTemplates(t);
+                  setSelectedTemplate(null);
+                }}
+              />
               
               {selectedSize && (
                 <TemplateSelector 
+                  templates={templates}
                   selectedTemplate={selectedTemplate}
                   onTemplateSelect={setSelectedTemplate}
                 />

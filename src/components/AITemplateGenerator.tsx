@@ -7,104 +7,226 @@ import { QRTemplate } from '@/types/wifi';
 import { toast } from 'sonner';
 
 const businessKeywords = [
+  { id: 'korean-bbq', label: '한식/고기집', color: '#B45309', emoji: '🍖' },
   { id: 'cafe', label: '카페', color: '#8B4513', emoji: '☕' },
+  { id: 'bakery', label: '베이커리', color: '#D97706', emoji: '🥐' },
   { id: 'restaurant', label: '레스토랑', color: '#DC2626', emoji: '🍽️' },
   { id: 'hospital', label: '병원', color: '#2563EB', emoji: '🏥' },
-  { id: 'hotel', label: '호텔', color: '#7C3AED', emoji: '🏨' },
+  { id: 'clinic', label: '치과/의원', color: '#0EA5E9', emoji: '🦷' },
+  { id: 'bar', label: '바/호프', color: '#F59E0B', emoji: '🍺' },
+  { id: 'kids', label: '키즈/교육', color: '#22C55E', emoji: '🧸' },
   { id: 'modern', label: '모던', color: '#06B6D4', emoji: '💎' },
-  { id: 'classic', label: '클래식', color: '#059669', emoji: '🎭' },
-  { id: 'minimal', label: '미니멀', color: '#6B7280', emoji: '⚪' },
-  { id: 'luxury', label: '럭셔리', color: '#D97706', emoji: '👑' }
+  { id: 'vintage', label: '빈티지', color: '#C2410C', emoji: '📻' },
+  { id: 'natural', label: '내추럴', color: '#10B981', emoji: '🌿' },
+  { id: 'luxury', label: '럭셔리', color: '#D4AF37', emoji: '💛' },
 ];
 
 interface AITemplateGeneratorProps {
   onTemplateGenerated: (templates: QRTemplate[]) => void;
 }
 
-// AI 템플릿 생성 로직
+// AI 템플릿 생성 로직 (피그마 레이아웃 반영: 가로 A/B, 세로 A/B)
 const generateTemplatesFromKeywords = async (keywords: string[]): Promise<QRTemplate[]> => {
-  // 키워드 기반 색상 팔레트 생성
-  const colorPalettes = {
+  const paletteByKeyword: Record<string, { bg: string; accent: string; text: string; pattern: QRTemplate['backgroundPattern'] }[]> = {
+    'korean-bbq': [
+      { bg: '#FFFBEB', accent: '#B45309', text: '#7C2D12', pattern: 'subtle-texture' },
+      { bg: '#FEF3C7', accent: '#D97706', text: '#92400E', pattern: 'dots' },
+    ],
     cafe: [
-      { bg: '#FEF7ED', accent: '#EA580C', text: '#9A3412', border: 'rounded' },
-      { bg: '#F5F5DC', accent: '#8B4513', text: '#654321', border: 'solid' },
-      { bg: '#FFFBF0', accent: '#D2691E', text: '#A0522D', border: 'rounded' },
-      { bg: '#FDF2E9', accent: '#CD853F', text: '#8B4513', border: 'none' }
+      { bg: '#FEF7ED', accent: '#C2410C', text: '#8B4513', pattern: 'subtle-texture' },
+      { bg: '#FFF7ED', accent: '#A16207', text: '#7C3F13', pattern: 'none' },
+    ],
+    bakery: [
+      { bg: '#FFF7ED', accent: '#D97706', text: '#7C2D12', pattern: 'dots' },
+      { bg: '#FEF3C7', accent: '#F59E0B', text: '#92400E', pattern: 'subtle-texture' },
     ],
     restaurant: [
-      { bg: '#FEE2E2', accent: '#DC2626', text: '#991B1B', border: 'solid' },
-      { bg: '#FFF1F2', accent: '#E11D48', text: '#BE123C', border: 'rounded' },
-      { bg: '#FFEBEE', accent: '#F44336', text: '#C62828', border: 'dashed' },
-      { bg: '#FCE4EC', accent: '#E91E63', text: '#AD1457', border: 'solid' }
+      { bg: '#FCE7F3', accent: '#BE185D', text: '#831843', pattern: 'subtle-texture' },
+      { bg: '#FEE2E2', accent: '#DC2626', text: '#991B1B', pattern: 'subtle-lines' },
     ],
     hospital: [
-      { bg: '#DBEAFE', accent: '#2563EB', text: '#1E40AF', border: 'solid' },
-      { bg: '#E0F2FE', accent: '#0284C7', text: '#0369A1', border: 'rounded' },
-      { bg: '#F0F9FF', accent: '#0EA5E9', text: '#0284C7', border: 'none' },
-      { bg: '#EBF8FF', accent: '#3B82F6', text: '#1D4ED8', border: 'solid' }
+      { bg: '#ECFEFF', accent: '#06B6D4', text: '#0E7490', pattern: 'none' },
+      { bg: '#F0FDFA', accent: '#10B981', text: '#065F46', pattern: 'none' },
     ],
-    hotel: [
-      { bg: '#F3E8FF', accent: '#7C3AED', text: '#5B21B6', border: 'rounded' },
-      { bg: '#FAF5FF', accent: '#8B5CF6', text: '#6D28D9', border: 'solid' },
-      { bg: '#F5F3FF', accent: '#A855F7', text: '#7C2D12', border: 'dashed' },
-      { bg: '#FDF4FF', accent: '#D946EF', text: '#A21CAF', border: 'rounded' }
+    clinic: [
+      { bg: '#F0F9FF', accent: '#0EA5E9', text: '#075985', pattern: 'subtle-lines' },
+      { bg: '#DBEAFE', accent: '#2563EB', text: '#1E40AF', pattern: 'none' },
+    ],
+    bar: [
+      { bg: '#111827', accent: '#F59E0B', text: '#F9FAFB', pattern: 'gradient' },
+      { bg: '#0F172A', accent: '#06B6D4', text: '#E0F2FE', pattern: 'gradient' },
+    ],
+    kids: [
+      { bg: '#FEFCE8', accent: '#22C55E', text: '#166534', pattern: 'dots' },
+      { bg: '#F0FDF4', accent: '#10B981', text: '#065F46', pattern: 'subtle-texture' },
     ],
     modern: [
-      { bg: '#ECFEFF', accent: '#06B6D4', text: '#0E7490', border: 'none' },
-      { bg: '#F0FDFA', accent: '#14B8A6', text: '#0F766E', border: 'solid' },
-      { bg: '#F0F9FF', accent: '#0EA5E9', text: '#0284C7', border: 'rounded' },
-      { bg: '#FAFAFA', accent: '#71717A', text: '#3F3F46', border: 'solid' }
+      { bg: '#FAFAFA', accent: '#0EA5E9', text: '#0F172A', pattern: 'subtle-lines' },
+      { bg: '#F8FAFC', accent: '#64748B', text: '#0F172A', pattern: 'none' },
     ],
-    classic: [
-      { bg: '#F0FDF4', accent: '#059669', text: '#047857', border: 'solid' },
-      { bg: '#FFFBEB', accent: '#D97706', text: '#92400E', border: 'rounded' },
-      { bg: '#FEF3C7', accent: '#F59E0B', text: '#B45309', border: 'dashed' },
-      { bg: '#FDF4FF', accent: '#A855F7', text: '#7C2D12', border: 'solid' }
+    vintage: [
+      { bg: '#FEF7ED', accent: '#C2410C', text: '#7C2D12', pattern: 'subtle-texture' },
+      { bg: '#FDF2E9', accent: '#B45309', text: '#7C2D12', pattern: 'dots' },
     ],
-    minimal: [
-      { bg: '#FFFFFF', accent: '#374151', text: '#1F2937', border: 'none' },
-      { bg: '#F9FAFB', accent: '#6B7280', text: '#374151', border: 'solid' },
-      { bg: '#F8FAFC', accent: '#64748B', text: '#334155', border: 'rounded' },
-      { bg: '#FEFEFE', accent: '#52525B', text: '#27272A', border: 'none' }
+    natural: [
+      { bg: '#ECFDF5', accent: '#10B981', text: '#064E3B', pattern: 'none' },
+      { bg: '#F0FDF4', accent: '#22C55E', text: '#065F46', pattern: 'subtle-texture' },
     ],
     luxury: [
-      { bg: '#FFFBEB', accent: '#D97706', text: '#92400E', border: 'rounded' },
-      { bg: '#FEF3C7', accent: '#F59E0B', text: '#B45309', border: 'solid' },
-      { bg: '#1F2937', accent: '#F59E0B', text: '#FDE68A', border: 'dashed' },
-      { bg: '#111827', accent: '#FBBF24', text: '#FEF3C7', border: 'rounded' }
-    ]
+      { bg: '#1F2937', accent: '#F59E0B', text: '#FDE68A', pattern: 'gradient' },
+      { bg: '#111827', accent: '#FBBF24', text: '#FEF3C7', pattern: 'gradient' },
+    ],
   };
-  
+
+  const fontByKeyword: Record<string, string> = {
+    'korean-bbq': 'Nanum Myeongjo',
+    cafe: 'Noto Serif KR',
+    bakery: 'Do Hyeon',
+    restaurant: 'Playfair Display',
+    hospital: 'Noto Sans KR',
+    clinic: 'Noto Sans KR',
+    bar: 'Black Han Sans',
+    kids: 'Jua',
+    modern: 'Poppins',
+    vintage: 'Nanum Myeongjo',
+    natural: 'Nanum Gothic',
+    luxury: 'Playfair Display',
+  };
+
+  const categoryByKeyword: Record<string, QRTemplate['category']> = {
+    'korean-bbq': 'minimal_business',
+    cafe: 'cafe_vintage',
+    bakery: 'friendly_colorful',
+    restaurant: 'restaurant_elegant',
+    hospital: 'hospital_clean',
+    clinic: 'hospital_clean',
+    bar: 'modern_bold',
+    kids: 'friendly_colorful',
+    modern: 'modern_bold',
+    vintage: 'cafe_vintage',
+    natural: 'minimal_business',
+    luxury: 'restaurant_elegant',
+  };
+
+  // 피그마 기반 레이아웃 프리셋
+  const layoutPresets = [
+    {
+      id: 'landscape-a',
+      structure: {
+        layout: 'horizontal_split',
+        fontFamily: '',
+        fontSizes: { storeName: 24, wifiInfo: 16, description: 13, qrLabel: 12 },
+        textAlign: 'left' as const,
+        spacing: { padding: 28, marginTop: 16, marginBottom: 16, elementGap: 12 },
+        decorativeElements: [],
+        qrPosition: { x: '72%', y: '50%', size: 'large' },
+        textPositions: {
+          storeName: { x: '25%', y: '30%' },
+          wifiInfo: { x: '25%', y: '58%' },
+          description: { x: '25%', y: '75%' },
+        },
+        colors: { primary: '', secondary: '', accent: '', text: '', background: '' },
+      },
+    },
+    {
+      id: 'landscape-b',
+      structure: {
+        layout: 'top_heavy',
+        fontFamily: '',
+        fontSizes: { storeName: 26, wifiInfo: 16, description: 12, qrLabel: 11 },
+        textAlign: 'center' as const,
+        spacing: { padding: 24, marginTop: 18, marginBottom: 18, elementGap: 14 },
+        decorativeElements: [],
+        qrPosition: { x: '50%', y: '62%', size: 'large' },
+        textPositions: {
+          storeName: { x: '50%', y: '20%' },
+          wifiInfo: { x: '50%', y: '80%' },
+          description: { x: '50%', y: '90%' },
+        },
+        colors: { primary: '', secondary: '', accent: '', text: '', background: '' },
+      },
+    },
+    {
+      id: 'portrait-a',
+      structure: {
+        layout: 'vertical_centered',
+        fontFamily: '',
+        fontSizes: { storeName: 28, wifiInfo: 16, description: 12, qrLabel: 11 },
+        textAlign: 'center' as const,
+        spacing: { padding: 24, marginTop: 16, marginBottom: 16, elementGap: 12 },
+        decorativeElements: [],
+        qrPosition: { x: '50%', y: '55%', size: 'large' },
+        textPositions: {
+          storeName: { x: '50%', y: '18%' },
+          wifiInfo: { x: '50%', y: '80%' },
+          description: { x: '50%', y: '90%' },
+        },
+        colors: { primary: '', secondary: '', accent: '', text: '', background: '' },
+      },
+    },
+    {
+      id: 'portrait-b',
+      structure: {
+        layout: 'center',
+        fontFamily: '',
+        fontSizes: { storeName: 24, wifiInfo: 15, description: 12, qrLabel: 11 },
+        textAlign: 'center' as const,
+        spacing: { padding: 22, marginTop: 16, marginBottom: 16, elementGap: 12 },
+        decorativeElements: [],
+        qrPosition: { x: '50%', y: '50%', size: 'medium' },
+        textPositions: {
+          storeName: { x: '50%', y: '25%' },
+          wifiInfo: { x: '50%', y: '75%' },
+          description: { x: '50%', y: '86%' },
+        },
+        colors: { primary: '', secondary: '', accent: '', text: '', background: '' },
+      },
+    },
+  ];
+
   const templates: QRTemplate[] = [];
-  
-  for (let i = 0; i < 4; i++) {
-    const selectedKeyword = keywords[Math.floor(Math.random() * keywords.length)] as keyof typeof colorPalettes;
-    const keywordPalettes = colorPalettes[selectedKeyword] || colorPalettes.modern;
-    const palette = keywordPalettes[i % keywordPalettes.length];
-    
-    const keywordEmoji = businessKeywords.find(k => k.id === selectedKeyword)?.emoji || '✨';
-    
-    const layouts = ['center', 'top', 'bottom', 'split-left', 'split-right'] as const;
-    const qrSizes = ['small', 'medium', 'large'] as const;
-    const patterns = ['gradient', 'dots', 'lines', 'none'] as const;
-    const decoratives: Array<('corners' | 'frame' | 'shapes' | 'icons')[]> = [['corners'], ['frame'], ['shapes'], ['corners', 'frame'], ['shapes', 'icons']];
-    
+
+  for (let i = 0; i < Math.min(6, keywords.length * 2 || 4); i++) {
+    const kw = keywords[i % keywords.length];
+    const palettes = paletteByKeyword[kw] || paletteByKeyword['modern'];
+    const palette = palettes[i % palettes.length];
+    const preset = layoutPresets[i % layoutPresets.length];
+
+    const font = fontByKeyword[kw] || 'Noto Sans KR';
+    const category = categoryByKeyword[kw] || 'minimal_business';
+
+    const id = `ai-${kw}-${Date.now()}-${i}`;
+
+    const structure = {
+      ...preset.structure,
+      fontFamily: font,
+      colors: {
+        primary: palette.accent,
+        secondary: palette.text,
+        accent: palette.accent,
+        text: palette.text,
+        background: palette.bg,
+      },
+    } as QRTemplate['structure'];
+
     templates.push({
-      id: `ai-generated-${Date.now()}-${i}`,
-      name: `AI ${selectedKeyword} ${i + 1} ${keywordEmoji}`,
-      description: `${selectedKeyword} 컨셉의 맞춤 디자인`,
+      id,
+      name: `${businessKeywords.find((b) => b.id === kw)?.label || 'AI'} 템플릿 ${i + 1}`,
+      description: '예: "여기서 스캔하고 바로 연결"',
       backgroundColor: palette.bg,
       accentColor: palette.accent,
       textColor: palette.text,
-      borderStyle: palette.border as 'none' | 'solid' | 'dashed' | 'rounded',
+      borderStyle: 'rounded',
       icon: 'sparkles',
-      layout: layouts[i % layouts.length],
-      qrSizeRatio: qrSizes[i % qrSizes.length],
-      backgroundPattern: patterns[i % patterns.length],
-      decorativeElements: decoratives[i % decoratives.length]
+      layout: structure.layout,
+      qrSizeRatio: preset.structure.qrPosition.size,
+      backgroundPattern: palette.pattern,
+      decorativeElements: ['frame'],
+      category,
+      structure,
     });
   }
-  
+
   return templates;
 };
 
@@ -121,13 +243,10 @@ export const AITemplateGenerator = ({ onTemplateGenerated }: AITemplateGenerator
     
     setIsGenerating(true);
     try {
-      // 시뮬레이션된 AI 생성 딜레이
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1000));
       const templates = await generateTemplatesFromKeywords(selectedKeywords);
       setGeneratedTemplates(templates);
       onTemplateGenerated(templates);
-      
       toast.success(`${templates.length}개의 AI 템플릿이 생성되었습니다!`);
     } catch (error) {
       console.error('AI 템플릿 생성 실패:', error);
@@ -154,24 +273,24 @@ export const AITemplateGenerator = ({ onTemplateGenerated }: AITemplateGenerator
           <Badge variant="secondary" className="ml-2">Beta</Badge>
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          비즈니스 컨셉을 선택하면 AI가 어울리는 맞춤 템플릿을 생성해드립니다
+          업종/컨셉을 선택하면 AI가 한국 사용자 취향에 맞게 템플릿을 생성합니다
         </p>
       </CardHeader>
       <CardContent>
         <div className="space-y-6">
           <div>
-            <h4 className="text-sm font-medium mb-3 text-foreground">비즈니스 컨셉 선택</h4>
+            <h4 className="text-sm font-medium mb-3 text-foreground">업종/컨셉 선택</h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {businessKeywords.map((keyword) => (
                 <Badge
                   key={keyword.id}
-                  variant={selectedKeywords.includes(keyword.id) ? "default" : "outline"}
+                  variant={selectedKeywords.includes(keyword.id) ? 'default' : 'outline'}
                   className="cursor-pointer p-3 justify-center transition-all hover:scale-105"
                   onClick={() => toggleKeyword(keyword.id)}
                   style={{
                     backgroundColor: selectedKeywords.includes(keyword.id) ? keyword.color : undefined,
                     borderColor: keyword.color,
-                    color: selectedKeywords.includes(keyword.id) ? '#ffffff' : keyword.color
+                    color: selectedKeywords.includes(keyword.id) ? '#ffffff' : keyword.color,
                   }}
                 >
                   <span className="mr-1">{keyword.emoji}</span>
@@ -198,7 +317,7 @@ export const AITemplateGenerator = ({ onTemplateGenerated }: AITemplateGenerator
                 'AI 템플릿 생성'
               )}
             </Button>
-            
+
             {generatedTemplates.length > 0 && (
               <Button 
                 variant="outline" 
@@ -216,8 +335,8 @@ export const AITemplateGenerator = ({ onTemplateGenerated }: AITemplateGenerator
             <div className="bg-muted/50 rounded-lg p-4">
               <p className="text-xs text-muted-foreground mb-2">선택된 컨셉:</p>
               <div className="flex flex-wrap gap-1">
-                {selectedKeywords.map(keywordId => {
-                  const keyword = businessKeywords.find(k => k.id === keywordId);
+                {selectedKeywords.map((keywordId) => {
+                  const keyword = businessKeywords.find((k) => k.id === keywordId);
                   return (
                     <span key={keywordId} className="text-xs px-2 py-1 bg-primary/10 rounded-full">
                       {keyword?.emoji} {keyword?.label}
