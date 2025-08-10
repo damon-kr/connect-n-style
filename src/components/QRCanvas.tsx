@@ -12,6 +12,7 @@ interface TextElement {
   fontSize: number;
   fontFamily: string;
   fontWeight: 'normal' | 'bold';
+  fontStyle?: 'normal' | 'italic';
   color: string;
   visible: boolean;
   textAlign?: 'left' | 'center' | 'right';
@@ -105,8 +106,7 @@ export const QRCanvas = forwardRef<QRCanvasRef, QRCanvasProps>(
         if (element.type === 'text' && element.textElement?.visible) {
           const textEl = element.textElement;
 
-          // 텍스트 렌더링 (장식 배경 제거, Figma 스타일 존중)
-          ctx.font = `${textEl.fontWeight} ${textEl.fontSize}px ${textEl.fontFamily}`;
+          ctx.font = `${textEl.fontStyle ?? 'normal'} ${textEl.fontWeight} ${textEl.fontSize}px ${textEl.fontFamily}`;
           ctx.fillStyle = textEl.color;
           ctx.textAlign = textEl.textAlign ?? 'center';
           ctx.textBaseline = 'middle';
