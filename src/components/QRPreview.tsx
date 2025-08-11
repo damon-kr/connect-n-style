@@ -285,8 +285,8 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
         additionalText,
         otherText,
         showWifiInfo,
-        businessFont: 'Inter',
-        wifiInfoFont: 'Inter',
+        businessFont: template.structure?.fontFamily || 'Inter',
+        wifiInfoFont: template.structure?.fontFamily || 'Inter',
       },
       config.ssid,
       config.password
@@ -448,35 +448,43 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
                     </div>
                     
                     {/* QR Code */}
-                    {qrImage && (
-                      <div
-                        className="absolute"
-                        style={{
-                          left: `${(printSize.width / 2 - 80) * (Math.min(400, printSize.width) / printSize.width)}px`,
-                          top: `${(printSize.height / 2 - 80) * (Math.min(400, printSize.height) / printSize.height)}px`,
-                          width: `${160 * (Math.min(400, printSize.width) / printSize.width)}px`,
-                          height: `${160 * (Math.min(400, printSize.width) / printSize.width)}px`,
-                          zIndex: 20
-                        }}
-                      >
-                        <div 
-                          className="w-full h-full p-2 rounded-xl"
+                    {qrImage && layoutElements.filter(el => el.type === 'qr').map((element) => {
+                      const containerWidth = Math.min(400, printSize.width);
+                      const containerHeight = Math.min(400, printSize.height);
+                      const scaleX = containerWidth / printSize.width;
+                      const scaleY = containerHeight / printSize.height;
+                      const scale = Math.min(scaleX, scaleY);
+                      return (
+                        <div
+                          key="qr"
+                          className="absolute"
                           style={{
-                            background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.98)' : 'transparent',
-                            backdropFilter: template?.aiGeneratedBackground ? 'blur(12px)' : 'none',
-                            boxShadow: template?.aiGeneratedBackground ? '0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.3)' : 'none',
-                            border: template?.aiGeneratedBackground ? '1px solid rgba(255,255,255,0.2)' : 'none'
+                            left: `${element.x * scale}px`,
+                            top: `${element.y * scale}px`,
+                            width: `${element.width * scale}px`,
+                            height: `${element.height * scale}px`,
+                            zIndex: 20
                           }}
                         >
-                          <img 
-                            src={qrImage} 
-                            alt="QR Code" 
-                            className="w-full h-full object-contain"
-                            draggable={false}
-                          />
+                          <div 
+                            className="w-full h-full p-2 rounded-xl"
+                            style={{
+                              background: template?.aiGeneratedBackground ? 'rgba(255,255,255,0.98)' : 'transparent',
+                              backdropFilter: template?.aiGeneratedBackground ? 'blur(12px)' : 'none',
+                              boxShadow: template?.aiGeneratedBackground ? '0 6px 20px rgba(0,0,0,0.25), 0 0 0 1px rgba(255,255,255,0.3)' : 'none',
+                              border: template?.aiGeneratedBackground ? '1px solid rgba(255,255,255,0.2)' : 'none'
+                            }}
+                          >
+                            <img 
+                              src={qrImage} 
+                              alt="QR Code" 
+                              className="w-full h-full object-contain"
+                              draggable={false}
+                            />
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      );
+                    })}
                     
                     {/* Text Elements */}
                     {layoutElements.filter(el => el.type === 'text').map((element) => {
