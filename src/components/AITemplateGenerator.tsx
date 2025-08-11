@@ -7,6 +7,7 @@ import { QRTemplate } from '@/types/wifi';
 import { toast } from 'sonner';
 
 import { generateTemplatesFromKeywords, businessKeywords } from '@/lib/aiTemplates';
+import { generateTemplatesWithOpenAI } from '@/lib/aiTemplateService';
 
 interface AITemplateGeneratorProps {
   onTemplateGenerated: (templates: QRTemplate[]) => void;
@@ -22,17 +23,25 @@ export const AITemplateGenerator = ({ onTemplateGenerated }: AITemplateGenerator
       toast.error('최소 하나의 업종/컨셉을 선택해주세요');
       return;
     }
-    
     setIsGenerating(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      const templates = await generateTemplatesFromKeywords(selectedKeywords);
+      // 1) OpenAI 기반 생성 시도
+      const templates = await generateTemplatesWithOpenAI(selectedKeywords);
       setGeneratedTemplates(templates);
       onTemplateGenerated(templates);
-      toast.success(`${templates.length}개의 맞춤 템플릿이 생성되었습니다!`);
+      toast.success(`${templates.length}개의 AI 템플릿이 생성되었습니다!`);
     } catch (error) {
-      console.error('AI 템플릿 생성 실패:', error);
-      toast.error('AI 템플릿 생성에 실패했습니다');
+      console.warn('OpenAI 템플릿 생성 실패, 로컬 프리셋으로 대체:', error);
+      try {
+        // 2) 실패 시 기존 로컬 프리셋 생성으로 폴백
+        const templates = await generateTemplatesFromKeywords(selectedKeywords);
+        setGeneratedTemplates(templates);
+        onTemplateGenerated(templates);
+        toast.success(`${templates.length}개의 템플릿이 로컬 프리셋으로 생성되었습니다`);
+      } catch (err) {
+        console.error('로컬 프리셋 생성도 실패:', err);
+        toast.error('AI 템플릿 생성에 실패했습니다');
+      }
     } finally {
       setIsGenerating(false);
     }
