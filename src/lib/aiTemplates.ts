@@ -558,7 +558,7 @@ export const generateTemplatesFromKeywords = async (keywords: string[]): Promise
       layout: structure.layout as QRTemplate['layout'],
       qrSizeRatio: (preset.structure.qrPosition.size as QRTemplate['qrSizeRatio']),
       backgroundPattern: palette.pattern,
-      decorativeElements: [...palette.decorative],
+      decorativeElements: palette.decorative as QRTemplate['decorativeElements'],
       category,
       structure,
     });

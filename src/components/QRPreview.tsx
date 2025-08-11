@@ -34,6 +34,7 @@ export const QRPreview = ({ config, template, printSize, onDownload, onShare }: 
   const [aiBgUrl, setAiBgUrl] = useState<string | null>(null);
   
   const canvasRef = useRef<QRCanvasRef>(null);
+  const lastSeedKeyRef = useRef<string>('');
 
   // 요소별 스타일 상태
   const [elementStyles, setElementStyles] = useState([
