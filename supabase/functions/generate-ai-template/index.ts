@@ -40,43 +40,131 @@ serve(async (req) => {
       'corners','frame','icons','shapes','vintage-frame','coffee-icons','professional-frame','geometric-shapes','color-accents','clean-border','elegant-frame','colorful-shapes','retro-icons','gold-accents','tech-shapes','neon-accents'
     ];
 
-    const system = `You are a senior Korean graphic designer generating structured QR poster templates for print. Output JSON ONLY.`;
-    const user = `Create ${count} diverse WiFi QR poster templates tailored for Korean businesses using these keywords: ${keywords.join(', ')}.
-Return a pure JSON array (no markdown) of objects matching this TypeScript type fields:
-{
-  id: string; // unique id (kebab-case)
-  name: string; // short display name in Korean
-  description: string; // brief Korean description
-  backgroundColor: string; // hex
-  accentColor: string; // hex
-  textColor: string; // hex
-  borderStyle: 'none' | 'solid' | 'dashed' | 'rounded';
-  icon?: string; // simple keyword like 'sparkles'
-  layout: ${JSON.stringify(allowedLayouts)} one of
-  qrSizeRatio: 'small' | 'medium' | 'large';
-  backgroundPattern?: ${JSON.stringify(allowedPatterns)} one of
-  decorativeElements?: ${JSON.stringify(allowedDecor)} subset array
-  category?: 'minimal_business' | 'cafe_vintage' | 'modern_bold' | 'friendly_colorful' | 'hospital_clean' | 'restaurant_elegant' | 'tag_style';
-  aiGeneratedBackground?: string; // leave empty string
-  structure: {
-    layout: ${JSON.stringify(allowedLayouts)} one of;
-    fontFamily: string; // choose from Inter, Noto Sans KR, Pretendard
-    fontSizes: { storeName: number; wifiInfo: number; description: number; qrLabel: number };
-    textAlign: 'left' | 'center' | 'right';
-    spacing: { padding: number; marginTop: number; marginBottom: number; elementGap: number };
-    decorativeElements: ${JSON.stringify(allowedDecor)} subset array;
-    qrPosition: { x: string; y: string; size: 'small' | 'medium' | 'large' }; // percentage strings for x,y
-    textPositions: { storeName: {x: string; y: string}; wifiInfo: {x: string; y: string}; description: {x: string; y: string} };
-    colors: { primary: string; secondary: string; accent: string; text: string; background: string };
-  };
-}
-Rules:
-- Ensure contrast and print readability; keep QR area less busy.
-- Provide varied layouts (horizontal, vertical, asymmetric, tag_style) and sizes.
-- Use hex colors; ensure Korean-friendly typography.
-- Use only allowed decorativeElements values.
-- x,y are percentage strings like '50%'.
-- aiGeneratedBackground must be '' (empty) for now.`;
+    // JSON Schema to enforce structured output
+    const jsonSchema = {
+      name: 'qr_templates_payload',
+      schema: {
+        type: 'object',
+        additionalProperties: false,
+        properties: {
+          templates: {
+            type: 'array',
+            minItems: 8,
+            maxItems: 16,
+            items: {
+              type: 'object',
+              additionalProperties: false,
+              properties: {
+                id: { type: 'string' },
+                name: { type: 'string' },
+                description: { type: 'string' },
+                backgroundColor: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' },
+                accentColor: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' },
+                textColor: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' },
+                borderStyle: { type: 'string', enum: ['none','solid','dashed','rounded'] },
+                icon: { type: 'string' },
+                layout: { type: 'string', enum: allowedLayouts },
+                qrSizeRatio: { type: 'string', enum: ['small','medium','large'] },
+                backgroundPattern: { type: 'string', enum: allowedPatterns },
+                decorativeElements: {
+                  type: 'array',
+                  items: { type: 'string', enum: allowedDecor },
+                  uniqueItems: true,
+                },
+                category: {
+                  type: 'string',
+                  enum: ['minimal_business','cafe_vintage','modern_bold','friendly_colorful','hospital_clean','restaurant_elegant','tag_style']
+                },
+                aiGeneratedBackground: { type: 'string' },
+                structure: {
+                  type: 'object',
+                  additionalProperties: false,
+                  properties: {
+                    layout: { type: 'string', enum: allowedLayouts },
+                    fontFamily: { type: 'string', enum: ['Inter','Noto Sans KR','Pretendard'] },
+                    fontSizes: {
+                      type: 'object',
+                      properties: {
+                        storeName: { type: 'number' },
+                        wifiInfo: { type: 'number' },
+                        description: { type: 'number' },
+                        qrLabel: { type: 'number' }
+                      },
+                      required: ['storeName','wifiInfo','description','qrLabel']
+                    },
+                    textAlign: { type: 'string', enum: ['left','center','right'] },
+                    spacing: {
+                      type: 'object',
+                      properties: {
+                        padding: { type: 'number' },
+                        marginTop: { type: 'number' },
+                        marginBottom: { type: 'number' },
+                        elementGap: { type: 'number' }
+                      },
+                      required: ['padding','marginTop','marginBottom','elementGap']
+                    },
+                    decorativeElements: {
+                      type: 'array',
+                      items: { type: 'string', enum: allowedDecor },
+                      uniqueItems: true
+                    },
+                    qrPosition: {
+                      type: 'object',
+                      properties: {
+                        x: { type: 'string', pattern: '^[0-9]{1,3}%$' },
+                        y: { type: 'string', pattern: '^[0-9]{1,3}%$' },
+                        size: { type: 'string', enum: ['small','medium','large'] }
+                      },
+                      required: ['x','y','size']
+                    },
+                    textPositions: {
+                      type: 'object',
+                      properties: {
+                        storeName: {
+                          type: 'object',
+                          properties: { x: { type: 'string', pattern: '^[0-9]{1,3}%$' }, y: { type: 'string', pattern: '^[0-9]{1,3}%$' } },
+                          required: ['x','y']
+                        },
+                        wifiInfo: {
+                          type: 'object',
+                          properties: { x: { type: 'string', pattern: '^[0-9]{1,3}%$' }, y: { type: 'string', pattern: '^[0-9]{1,3}%$' } },
+                          required: ['x','y']
+                        },
+                        description: {
+                          type: 'object',
+                          properties: { x: { type: 'string', pattern: '^[0-9]{1,3}%$' }, y: { type: 'string', pattern: '^[0-9]{1,3}%$' } },
+                          required: ['x','y']
+                        }
+                      },
+                      required: ['storeName','wifiInfo','description']
+                    },
+                    colors: {
+                      type: 'object',
+                      properties: {
+                        primary: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' },
+                        secondary: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' },
+                        accent: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' },
+                        text: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' },
+                        background: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' }
+                      },
+                      required: ['primary','secondary','accent','text','background']
+                    }
+                  },
+                  required: ['layout','fontFamily','fontSizes','textAlign','spacing','decorativeElements','qrPosition','textPositions','colors']
+                }
+              },
+              required: ['id','name','description','backgroundColor','accentColor','textColor','borderStyle','layout','qrSizeRatio','backgroundPattern','decorativeElements','category','aiGeneratedBackground','structure']
+            }
+          }
+        },
+        required: ['templates']
+      },
+      strict: true
+    } as const;
+
+    const system = `당신은 한국 소상공인 포스터를 설계하는 시니어 그래픽 디자이너입니다. JSON 스키마를 엄격히 준수해 다양한 레이아웃을 생성하세요. QR 주위는 여백을 확보하고, 각 요소의 x,y는 '%'로, 대비/가독성을 확보하세요.`;
+
+    const user = `키워드: ${keywords.join(', ')}\n개수: ${count}\n요구사항:\n- 서로 다른 레이아웃/구성(수평/수직/비대칭/tag_style)과 다양한 폰트/크기/정렬/패딩/간격 값을 섞어 만드세요.\n- 텍스트/QR이 겹치지 않도록 배치하고, 프린트 시 잘 보이게 대비를 확보하세요.\n- 색상은 hex, 위치는 'NN%' 문자열을 사용하세요.\n- templates 배열로만 반환하세요.`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -85,12 +173,13 @@ Rules:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-4.1-2025-04-14',
         messages: [
           { role: 'system', content: system },
           { role: 'user', content: user }
         ],
         temperature: 0.8,
+        response_format: { type: 'json_schema', json_schema: jsonSchema },
       }),
     });
 
@@ -118,15 +207,21 @@ Rules:
       }
     }
 
-    if (!Array.isArray(parsed)) {
-      return new Response(JSON.stringify({ error: 'Model did not return a JSON array', raw: content }), {
+    // Accept either an array or an object with templates array
+    let parsedArray: any[] = [];
+    if (Array.isArray(parsed)) {
+      parsedArray = parsed as any[];
+    } else if (parsed && typeof parsed === 'object' && Array.isArray((parsed as any).templates)) {
+      parsedArray = (parsed as any).templates as any[];
+    } else {
+      return new Response(JSON.stringify({ error: 'Model did not return valid templates', raw: content }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
       });
     }
 
     // Basic sanitization
-    const templates = (parsed as any[]).slice(0, count).map((t, i) => ({
+    const templates = parsedArray.slice(0, count).map((t: any, i: number) => ({
       id: String(t.id || `ai-template-${i+1}`),
       name: String(t.name || `AI 템플릿 ${i+1}`),
       description: String(t.description || ''),
