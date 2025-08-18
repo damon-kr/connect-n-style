@@ -28,6 +28,7 @@ const Index = () => {
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string>();
   const [templates, setTemplates] = useState<QRTemplate[]>([]);
+  const [showWifiInfo, setShowWifiInfo] = useState(false);
 
   const handleDownload = (imageUrl: string) => {
     setGeneratedCount(prev => prev + 1);
@@ -110,8 +111,8 @@ const Index = () => {
                 <WiFiForm 
                   config={wifiConfig} 
                   onConfigChange={setWifiConfig}
-                  showWifiInfo={false}
-                  onShowWifiInfoChange={() => {}}
+                  showWifiInfo={showWifiInfo}
+                  onShowWifiInfoChange={setShowWifiInfo}
                 />
               </div>
 

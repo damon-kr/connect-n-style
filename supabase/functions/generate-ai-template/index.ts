@@ -68,8 +68,7 @@ serve(async (req) => {
                 backgroundPattern: { type: 'string', enum: allowedPatterns },
                 decorativeElements: {
                   type: 'array',
-                  items: { type: 'string', enum: allowedDecor },
-                  uniqueItems: true,
+                  items: { type: 'string', enum: allowedDecor }
                 },
                 category: {
                   type: 'string',
@@ -105,8 +104,7 @@ serve(async (req) => {
                     },
                     decorativeElements: {
                       type: 'array',
-                      items: { type: 'string', enum: allowedDecor },
-                      uniqueItems: true
+                      items: { type: 'string', enum: allowedDecor }
                     },
                     qrPosition: {
                       type: 'object',
