@@ -178,7 +178,9 @@ serve(async (req) => {
           { role: 'system', content: system },
           { role: 'user', content: user }
         ],
-        temperature: 0.8,
+        // NOTE: gpt-4.1 family does not support `temperature`.
+        // Avoid using `max_tokens`; use `max_completion_tokens` instead if limiting output.
+        max_completion_tokens: 1200,
         response_format: { type: 'json_schema', json_schema: jsonSchema },
       }),
     });
