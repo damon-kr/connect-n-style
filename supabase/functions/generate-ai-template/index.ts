@@ -184,7 +184,8 @@ serve(async (req) => {
 - top: QR(50%,25%), 업체명(50%,60%), WiFi(50%,80%)
 - split-left: QR(25%,50%), 업체명(75%,30%), WiFi(75%,70%)
 
-    const user = `키워드: ${keywords.join(', ')}\n생성할 템플릿 수: ${count}
+    const user = `키워드: ${keywords.join(', ')}
+생성할 템플릿 수: ${count}
 
 각 키워드에 맞춘 프로페셔널 템플릿을 생성하세요. 모든 요소가 캔버스 내부에 정확히 배치되어야 합니다.
 
