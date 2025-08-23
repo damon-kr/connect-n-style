@@ -83,6 +83,7 @@ serve(async (req) => {
                     fontFamily: { type: 'string', enum: ['Inter','Noto Sans KR','Pretendard'] },
                     fontSizes: {
                       type: 'object',
+                      additionalProperties: false,
                       properties: {
                         storeName: { type: 'number' },
                         wifiInfo: { type: 'number' },
@@ -94,6 +95,7 @@ serve(async (req) => {
                     textAlign: { type: 'string', enum: ['left','center','right'] },
                     spacing: {
                       type: 'object',
+                      additionalProperties: false,
                       properties: {
                         padding: { type: 'number' },
                         marginTop: { type: 'number' },
@@ -108,6 +110,7 @@ serve(async (req) => {
                     },
                     qrPosition: {
                       type: 'object',
+                      additionalProperties: false,
                       properties: {
                         x: { type: 'string', pattern: '^[0-9]{1,3}%$' },
                         y: { type: 'string', pattern: '^[0-9]{1,3}%$' },
@@ -117,19 +120,23 @@ serve(async (req) => {
                     },
                     textPositions: {
                       type: 'object',
+                      additionalProperties: false,
                       properties: {
                         storeName: {
                           type: 'object',
+                          additionalProperties: false,
                           properties: { x: { type: 'string', pattern: '^[0-9]{1,3}%$' }, y: { type: 'string', pattern: '^[0-9]{1,3}%$' } },
                           required: ['x','y']
                         },
                         wifiInfo: {
                           type: 'object',
+                          additionalProperties: false,
                           properties: { x: { type: 'string', pattern: '^[0-9]{1,3}%$' }, y: { type: 'string', pattern: '^[0-9]{1,3}%$' } },
                           required: ['x','y']
                         },
                         description: {
                           type: 'object',
+                          additionalProperties: false,
                           properties: { x: { type: 'string', pattern: '^[0-9]{1,3}%$' }, y: { type: 'string', pattern: '^[0-9]{1,3}%$' } },
                           required: ['x','y']
                         }
@@ -138,6 +145,7 @@ serve(async (req) => {
                     },
                     colors: {
                       type: 'object',
+                      additionalProperties: false,
                       properties: {
                         primary: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' },
                         secondary: { type: 'string', pattern: '^#([0-9a-fA-F]{6})$' },
